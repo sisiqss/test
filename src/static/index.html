@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>职场情绪充电站 AI Agent</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部欢迎区域 -->
+        <div class="welcome-section">
+            <h1>✨ 职场情绪充电站 ✨</h1>
+            <p class="subtitle">你的命理分析与职场指导助手</p>
+            <div class="welcome-message">
+                <p>👋 欢迎来到职场情绪充电站！</p>
+                <p>我是你的AI助手，可以为你提供：</p>
+                <ul>
+                    <li>🔮 命理分析（八字、紫微斗数）</li>
+                    <li>🧠 MBTI性格分析与建议</li>
+                    <li>📈 运势趋势图生成</li>
+                    <li>👥 人际关系指导</li>
+                    <li>💼 职业转型建议</li>
+                </ul>
+                <p class="hint">💡 点击下方快捷按钮或直接在聊天框输入你的问题</p>
+            </div>
+        </div>
+
+        <!-- 功能按钮区域 -->
+        <div class="feature-buttons">
+            <button class="feature-btn" data-prompt="请帮我分析今天的运势">
+                <span class="icon">🔮</span>
+                <span class="text">命理分析</span>
+            </button>
+            <button class="feature-btn" data-prompt="我的MBTI类型是？如何提升职场表现？">
+                <span class="icon">🧠</span>
+                <span class="text">MBTI分析</span>
+            </button>
+            <button class="feature-btn" data-prompt="生成我本月的运势趋势图">
+                <span class="icon">📈</span>
+                <span class="text">运势趋势图</span>
+            </button>
+            <button class="feature-btn" data-prompt="如何与不同性格的同事更好沟通？">
+                <span class="icon">👥</span>
+                <span class="text">人际关系</span>
+            </button>
+            <button class="feature-btn" data-prompt="我想进行职业转型，有什么建议？">
+                <span class="icon">💼</span>
+                <span class="text">职业转型</span>
+            </button>
+        </div>
+
+        <!-- 聊天区域 -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>你好！我是职场情绪充电站的AI助手。</p>
+                        <p>你可以直接问我问题，或者点击上方的快捷按钮开始体验。</p>
+                        <p class="example">例如：</p>
+                        <ul class="example-list">
+                            <li>"请帮我分析今天的运势"</li>
+                            <li>"我是INTJ，在职场中应该注意什么？"</li>
+                            <li>"生成我本月的运势趋势图"</li>
+                            <li>"如何与ENFP类型的同事更好沟通？"</li>
+                            <li>"我想从技术岗转产品经理，有什么建议？"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <textarea 
+                    id="userInput" 
+                    class="chat-input" 
+                    placeholder="在输入框中输入消息，获取职场建议和命理分析..."
+                    rows="2"
+                ></textarea>
+                <button class="send-button" id="sendButton">
+                    发送
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

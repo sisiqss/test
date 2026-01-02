@@ -10,7 +10,8 @@ import cozeloop
 import uvicorn
 import time
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 from langgraph.graph.state import CompiledStateGraph
@@ -305,6 +306,34 @@ class GraphService:
 
 service = GraphService()
 app = FastAPI()
+
+# 挂载静态文件服务
+import os
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# 根路径重定向到首页
+@app.get("/", response_class=HTMLResponse)
+async def get_root():
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return """
+    <html>
+        <head><title>职场情绪充电站</title></head>
+        <body>
+            <h1>欢迎来到职场情绪充电站</h1>
+            <p>静态文件未找到，请检查static目录。</p>
+        </body>
+    </html>
+    """
+
+# API端点：将/stream_run映射到/api/stream，方便前端调用
+@app.post("/api/stream")
+async def api_stream(request: Request):
+    return await http_stream_run(request)
 
 
 @app.post("/run")
