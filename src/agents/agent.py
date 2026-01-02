@@ -52,7 +52,7 @@ def build_agent(ctx=None):
                 "type": cfg['config'].get('thinking', 'disabled')
             }
         },
-        default_headers=default_headers(ctx) if ctx else {}
+        default_headers=default_headers(ctx) if ctx and not isinstance(ctx, type) else {}
     )
     
     # 注册所有工具
