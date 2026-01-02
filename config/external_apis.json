@@ -1,0 +1,18 @@
+{
+  "bazi_api": {
+    "enabled": false,
+    "url": "https://ap-guangzhou.cloudmarket-apigw.com/services-4mq5lolqo/cityshw",
+    "api_key": "your_bazi_api_key_here",
+    "name": "腾讯云市场八字API",
+    "free_quota": 100,
+    "quota_type": "day"
+  },
+  "ziwei_api": {
+    "enabled": false,
+    "url": "https://www.yc00.com/api/v1/zwpan",
+    "api_key": "your_ziwei_api_key_here",
+    "name": "江阴雨辰互联紫微斗数API",
+    "free_quota": 0,
+    "quota_type": "day"
+  }
+}

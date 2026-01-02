@@ -12,6 +12,11 @@ from storage.memory.memory_saver import get_memory_saver
 # 导入工具
 from tools.numerology_tool import numerology_analysis, career_advice
 from tools.weather_tool import get_weather, dressing_advice
+from tools.external_api_tool import bazi_api_analysis, ziwei_analysis
+from tools.mbti_tool import mbti_analysis, validate_mbti_with_info
+from tools.chart_tool import generate_luck_chart, predict_monthly_luck, generate_combined_chart
+from tools.relationship_tool import relationship_advice, conflict_resolution
+from tools.career_transition_tool import career_transition_advice, skill_gap_analysis
 
 LLM_CONFIG = "config/agent_llm_config.json"
 
@@ -52,10 +57,33 @@ def build_agent(ctx=None):
     
     # 注册所有工具
     tools = [
-        numerology_analysis,
-        career_advice,
-        get_weather,
-        dressing_advice
+        # 命理分析工具
+        bazi_api_analysis,  # 八字分析（支持外部API和降级）
+        ziwei_analysis,     # 紫微斗数分析（支持外部API和降级）
+        
+        # 职场建议工具
+        career_advice,      # 职场建议
+        
+        # 天气和穿搭工具
+        get_weather,        # 天气查询
+        dressing_advice,     # 穿搭建议
+        
+        # MBTI工具
+        mbti_analysis,      # MBTI分析
+        validate_mbti_with_info,  # MBTI与信息验证
+        
+        # 图表工具
+        generate_luck_chart,       # 运势趋势图
+        predict_monthly_luck,     # 预测月度运势
+        generate_combined_chart,  # 综合趋势图
+        
+        # 人际关系工具
+        relationship_advice,      # 人际关系建议
+        conflict_resolution,      # 冲突解决建议
+        
+        # 职业转型工具
+        career_transition_advice, # 职业转型建议
+        skill_gap_analysis        # 技能差距分析
     ]
     
     return create_agent(
