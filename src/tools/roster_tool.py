@@ -572,7 +572,7 @@ def get_life_interpretation(user_id: str, check_expired: bool = True) -> str:
 
     参数：
     - user_id: 用户ID
-    - check_expired: 是否检查过期（默认为True，缓存7天）
+    - check_expired: 是否检查过期（默认为True，缓存3个月）
 
     返回：人生解读报告内容，如果过期则返回提示
     """
@@ -591,11 +591,11 @@ def get_life_interpretation(user_id: str, check_expired: bool = True) -> str:
             if not entry.life_interpretation:
                 return "📋 尚未生成人生解读报告，请先生成报告"
 
-            # 检查是否过期（7天缓存）
+            # 检查是否过期（3个月缓存）
             if check_expired and entry.life_interpretation_generated_at:
-                expired_time = entry.life_interpretation_generated_at + timedelta(days=7)
+                expired_time = entry.life_interpretation_generated_at + timedelta(days=90)
                 if datetime.utcnow() > expired_time:
-                    return "📋 人生解读报告已过期（缓存7天），请重新生成"
+                    return "📋 人生解读报告已过期（缓存3个月），请重新生成"
 
             interpretation = entry.life_interpretation
 
