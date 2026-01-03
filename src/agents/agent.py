@@ -35,6 +35,11 @@ from tools.roster_tool import (
     save_user_photo,
     check_user_info_exists
 )
+from tools.quick_report_tool import (
+    generate_quick_report,
+    format_life_report_section,
+    check_report_cache
+)
 # from tools.daily_report_tool import (
 #     get_weather_info,
 #     get_fashion_trends,
@@ -161,6 +166,11 @@ def build_agent(ctx=None):
         get_daily_report,        # 获取每日报告
         save_user_photo,         # 保存用户照片
         check_user_info_exists,  # 检查用户是否已录入信息
+
+        # 快速报告工具
+        generate_quick_report,   # 快速生成人生报告
+        format_life_report_section,  # 格式化报告板块
+        check_report_cache,      # 检查报告缓存
 
         # 每日报告工具（已禁用高消耗功能）
         # get_weather_info,         # 获取天气信息（已禁用，使用get_weather替代）
