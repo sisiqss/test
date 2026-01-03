@@ -59,7 +59,7 @@ def web_search(
 
 @tool
 def bazi_api_analysis(birth_year: str, birth_month: str, birth_day: str, 
-                      birth_hour: str, gender: str, runtime: Any) -> str:
+                      birth_hour: str, gender: str, query_date: str, runtime: Any) -> str:
     """
     使用外部八字API进行命理分析，如果API调用失败则降级到联网搜索。
     
@@ -69,12 +69,19 @@ def bazi_api_analysis(birth_year: str, birth_month: str, birth_day: str,
         birth_day: 出生日（如：15）
         birth_hour: 出生时辰（0-23）
         gender: 性别（男/女）
+        query_date: 查询日期（格式：YYYY-MM-DD），为空字符串则使用今天
         runtime: 工具运行时对象
     
     Returns:
-        命理分析结果
+        命理分析结果，包含明确的日期信息
     """
+    from datetime import date
+    
     ctx = runtime.context
+    
+    # 如果没有指定查询日期，使用今天
+    if not query_date:
+        query_date = date.today().strftime("%Y-%m-%d")
     
     # 检查是否配置了外部API
     workspace_path = os.getenv("COZE_WORKSPACE_PATH", "/workspace/projects")
@@ -103,6 +110,7 @@ def bazi_api_analysis(birth_year: str, birth_month: str, birth_day: str,
                             "birth_day": birth_day,
                             "birth_hour": birth_hour,
                             "gender": gender,
+                            "query_date": query_date,  # 添加查询日期参数
                             "api_key": api_key
                         },
                         timeout=10
@@ -111,16 +119,16 @@ def bazi_api_analysis(birth_year: str, birth_month: str, birth_day: str,
                     if response.status_code == 200:
                         data = response.json()
                         # 解析API返回的数据
-                        return parse_bazi_api_response(data, birth_year, birth_month, birth_day, birth_hour, gender)
+                        return parse_bazi_api_response(data, birth_year, birth_month, birth_day, birth_hour, gender, query_date)
     except Exception as e:
         print(f"外部API调用失败，降级到联网搜索: {str(e)}")
     
     # 降级到联网搜索
-    return fallback_bazi_analysis(ctx, birth_year, birth_month, birth_day, birth_hour, gender)
+    return fallback_bazi_analysis(ctx, birth_year, birth_month, birth_day, birth_hour, gender, query_date)
 
 
 def parse_bazi_api_response(data: dict, birth_year: str, birth_month: str, 
-                             birth_day: str, birth_hour: str, gender: str) -> str:
+                             birth_day: str, birth_hour: str, gender: str, query_date: str) -> str:
     """解析八字API的返回数据"""
     # 这里需要根据实际API的返回格式进行解析
     # 以下是示例解析逻辑
@@ -134,6 +142,7 @@ def parse_bazi_api_response(data: dict, birth_year: str, birth_month: str,
         
         return f"""🎯 命理分析报告（专业API）
 
+【查询日期】{query_date}
 【出生信息】
 {birth_year}年{birth_month}月{birth_day}日 {birth_hour}时 | 性别：{gender}
 
@@ -156,9 +165,9 @@ def parse_bazi_api_response(data: dict, birth_year: str, birth_month: str,
 
 
 def fallback_bazi_analysis(ctx: Context, birth_year: str, birth_month: str, 
-                           birth_day: str, birth_hour: str, gender: str) -> str:
+                           birth_day: str, birth_hour: str, gender: str, query_date: str) -> str:
     """降级方案：使用联网搜索获取命理信息"""
-    query = f"{birth_year}年{birth_month}月{birth_day}日{birth_hour}时出生{gender}性 八字排盘 五行分析"
+    query = f"{query_date} {birth_year}年{birth_month}月{birth_day}日{birth_hour}时出生{gender}性 八字排盘 五行分析 运势"
     
     try:
         web_items, content = web_search(ctx, query, search_type="web_summary", count=5, need_summary=True)
@@ -166,6 +175,7 @@ def fallback_bazi_analysis(ctx: Context, birth_year: str, birth_month: str,
         if content and content.strip():
             return f"""🎯 命理分析报告（联网搜索）
 
+【查询日期】{query_date}
 【出生信息】
 {birth_year}年{birth_month}月{birth_day}日 {birth_hour}时 | 性别：{gender}
 
@@ -181,6 +191,7 @@ def fallback_bazi_analysis(ctx: Context, birth_year: str, birth_month: str,
             
             return f"""🎯 命理分析报告（联网搜索）
 
+【查询日期】{query_date}
 【出生信息】
 {birth_year}年{birth_month}月{birth_day}日 {birth_hour}时 | 性别：{gender}
 
@@ -195,7 +206,7 @@ def fallback_bazi_analysis(ctx: Context, birth_year: str, birth_month: str,
 
 @tool
 def ziwei_analysis(birth_year: str, birth_month: str, birth_day: str, 
-                  birth_hour: str, gender: str, runtime: Any) -> str:
+                  birth_hour: str, gender: str, query_date: str, runtime: Any) -> str:
     """
     使用外部紫微斗数API进行分析，如果API调用失败则降级到联网搜索。
     
@@ -205,12 +216,19 @@ def ziwei_analysis(birth_year: str, birth_month: str, birth_day: str,
         birth_day: 出生日（如：15）
         birth_hour: 出生时辰（0-23）
         gender: 性别（0=女, 1=男）
+        query_date: 查询日期（格式：YYYY-MM-DD），为空字符串则使用今天
         runtime: 工具运行时对象
     
     Returns:
-        紫微斗数分析结果
+        紫微斗数分析结果，包含明确的日期信息
     """
+    from datetime import date
+    
     ctx = runtime.context
+    
+    # 如果没有指定查询日期，使用今天
+    if not query_date:
+        query_date = date.today().strftime("%Y-%m-%d")
     
     # 转换性别
     gender_code = "1" if gender == "男" else "0"
@@ -251,16 +269,16 @@ def ziwei_analysis(birth_year: str, birth_month: str, birth_day: str,
                     
                     if response.status_code == 200:
                         data = response.json()
-                        return parse_ziwei_api_response(data, birth_year, birth_month, birth_day, birth_hour, gender)
+                        return parse_ziwei_api_response(data, birth_year, birth_month, birth_day, birth_hour, gender, query_date)
     except Exception as e:
         print(f"紫微斗数API调用失败，降级到联网搜索: {str(e)}")
     
     # 降级到联网搜索
-    return fallback_ziwei_analysis(ctx, birth_year, birth_month, birth_day, birth_hour, gender)
+    return fallback_ziwei_analysis(ctx, birth_year, birth_month, birth_day, birth_hour, gender, query_date)
 
 
 def parse_ziwei_api_response(data: dict, birth_year: str, birth_month: str, 
-                            birth_day: str, birth_hour: str, gender: str) -> str:
+                            birth_day: str, birth_hour: str, gender: str, query_date: str) -> str:
     """解析紫微斗数API的返回数据"""
     try:
         # 假设API返回格式（需要根据实际API文档调整）
@@ -270,6 +288,7 @@ def parse_ziwei_api_response(data: dict, birth_year: str, birth_month: str,
         
         return f"""🔮 紫微斗数命盘分析（专业API）
 
+【查询日期】{query_date}
 【出生信息】
 {birth_year}年{birth_month}月{birth_day}日 {birth_hour}时 | 性别：{gender}
 
@@ -286,9 +305,9 @@ def parse_ziwei_api_response(data: dict, birth_year: str, birth_month: str,
 
 
 def fallback_ziwei_analysis(ctx: Context, birth_year: str, birth_month: str, 
-                            birth_day: str, birth_hour: str, gender: str) -> str:
+                            birth_day: str, birth_hour: str, gender: str, query_date: str) -> str:
     """降级方案：使用联网搜索获取紫微斗数信息"""
-    query = f"{birth_year}年{birth_month}月{birth_day}日{birth_hour}时出生{gender}性 紫微斗数 排盘 命盘"
+    query = f"{query_date} {birth_year}年{birth_month}月{birth_day}日{birth_hour}时出生{gender}性 紫微斗数 排盘 命盘 运势"
     
     try:
         web_items, content = web_search(ctx, query, search_type="web_summary", count=5, need_summary=True)
@@ -296,6 +315,7 @@ def fallback_ziwei_analysis(ctx: Context, birth_year: str, birth_month: str,
         if content and content.strip():
             return f"""🔮 紫微斗数命盘分析（联网搜索）
 
+【查询日期】{query_date}
 【出生信息】
 {birth_year}年{birth_month}月{birth_day}日 {birth_hour}时 | 性别：{gender}
 
@@ -311,6 +331,7 @@ def fallback_ziwei_analysis(ctx: Context, birth_year: str, birth_month: str,
             
             return f"""🔮 紫微斗数命盘分析（联网搜索）
 
+【查询日期】{query_date}
 【出生信息】
 {birth_year}年{birth_month}月{birth_day}日 {birth_hour}时 | 性别：{gender}
 
