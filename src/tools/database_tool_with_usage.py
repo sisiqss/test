@@ -44,8 +44,8 @@ def _record_usage_if_enabled(
         # 获取消耗金额
         amount = DATABASE_USAGE_COST.get(action, 0.1)
 
-        # 记录消耗
-        record_usage.func(user_id=user_id, amount=amount)
+        # 记录消耗（直接调用工具）
+        record_usage.invoke(user_id=user_id, amount=amount)
 
         logger.info(f"📊 记录消耗 | 用户: {user_id} | 操作: {action} | 消耗: {amount}")
 
