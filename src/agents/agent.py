@@ -40,6 +40,21 @@ from tools.quick_report_tool import (
     format_life_report_section,
     check_report_cache
 )
+# 邀请码和消耗限制工具
+from tools.invitation_code_tool import (
+    generate_invitation_code,
+    verify_invitation_code,
+    use_invitation_code,
+    list_invitation_codes,
+    check_user_admin
+)
+from tools.usage_limit_tool import (
+    check_global_usage_limit,
+    check_user_usage_limit,
+    record_usage,
+    get_usage_statistics,
+    check_all_limits
+)
 # from tools.daily_report_tool import (
 #     get_weather_info,
 #     get_fashion_trends,
@@ -171,6 +186,20 @@ def build_agent(ctx=None):
         generate_quick_report,   # 快速生成人生报告
         format_life_report_section,  # 格式化报告板块
         check_report_cache,      # 检查报告缓存
+
+        # 邀请码管理工具
+        generate_invitation_code,  # 生成邀请码（仅管理员）
+        verify_invitation_code,    # 验证邀请码
+        use_invitation_code,       # 使用邀请码注册
+        list_invitation_codes,     # 列出邀请码（仅管理员）
+        check_user_admin,          # 检查用户是否为管理员
+
+        # 消耗限制工具
+        check_global_usage_limit,  # 检查全局消耗限制
+        check_user_usage_limit,   # 检查用户消耗限制
+        record_usage,             # 记录消耗
+        get_usage_statistics,     # 获取消耗统计（仅管理员）
+        check_all_limits,         # 综合检查所有限制
 
         # 每日报告工具（已禁用高消耗功能）
         # get_weather_info,         # 获取天气信息（已禁用，使用get_weather替代）

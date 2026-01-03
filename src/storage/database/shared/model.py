@@ -179,5 +179,95 @@ class DailyReport(Base):
     )
 
     __table_args__ = (
-        Index("idx_user_id_date", "user_id", "report_date"),
+        Index("idx_daily_report_user_id_date", "user_id", "report_date"),
+    )
+
+
+# 邀请码表
+class InvitationCode(Base):
+    """邀请码表，用于控制用户注册"""
+    __tablename__ = "invitation_code"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, comment="邀请码（唯一）")
+    is_used: Mapped[bool] = mapped_column(default=False, nullable=False, comment="是否已使用")
+    used_by_user_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, comment="使用的用户ID")
+    used_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="使用时间")
+    created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, comment="创建者（管理员）")
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        nullable=False,
+        comment="创建时间"
+    )
+    expires_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="过期时间（可选）")
+
+    __table_args__ = (
+        Index("idx_code", "code"),
+    )
+
+
+# 用户账户表（用于账密认证）
+class UserAccount(Base):
+    """用户账户表，存储用户名、密码和管理员标识"""
+    __tablename__ = "user_account"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False, comment="用户ID（唯一标识）")
+    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, comment="用户名")
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False, comment="密码哈希")
+    is_admin: Mapped[bool] = mapped_column(default=False, nullable=False, comment="是否管理员")
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        nullable=False,
+        comment="创建时间"
+    )
+    last_login_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="最后登录时间")
+
+    __table_args__ = (
+        Index("idx_username", "username"),
+    )
+
+
+# 用户每日消耗记录表
+class UserDailyUsage(Base):
+    """用户每日消耗记录表，跟踪单用户的每日消耗"""
+    __tablename__ = "user_daily_usage"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(255), nullable=False, comment="用户ID")
+    date: Mapped[str] = mapped_column(String(20), nullable=False, comment="日期（格式：YYYY-MM-DD）")
+    usage: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="当日消耗")
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+        comment="更新时间"
+    )
+
+    __table_args__ = (
+        Index("idx_user_id_date", "user_id", "date"),
+    )
+
+
+# 全局每日消耗记录表
+class GlobalDailyUsage(Base):
+    """全局每日消耗记录表，跟踪所有用户的每日总消耗"""
+    __tablename__ = "global_daily_usage"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    date: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, comment="日期（格式：YYYY-MM-DD）")
+    total_usage: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="当日总消耗")
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+        comment="更新时间"
+    )
+
+    __table_args__ = (
+        Index("idx_date", "date"),
     )
