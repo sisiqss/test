@@ -155,6 +155,17 @@
   <div class="container">
     <h1>🚀 Agent API 测试页面</h1>
 
+    <!-- API 配置 -->
+    <div class="test-section" style="border-color: #667eea;">
+      <h2>⚙️ API 配置</h2>
+      <div class="input-group">
+        <label>API Base URL:</label>
+        <input type="text" id="apiBaseUrl" value="http://localhost:5000" onchange="updateApiUrl()">
+      </div>
+      <button onclick="updateApiUrl()">更新 API URL</button>
+      <button onclick="testConnection()">测试连接</button>
+    </div>
+
     <!-- 状态检查 -->
     <div class="test-section">
       <h2>📊 服务状态检查</h2>
@@ -245,7 +256,51 @@
   </div>
 
   <script>
-    const API_BASE_URL = 'http://localhost:5000';
+    // ====================================
+    // API 配置
+    // ====================================
+    // 方式1：从环境变量读取（推荐）
+    let API_BASE_URL = window.API_BASE_URL || localStorage.getItem('API_BASE_URL') || 'http://localhost:5000';
+
+    // 初始化输入框
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('apiBaseUrl').value = API_BASE_URL;
+    });
+
+    // 方式2：从 localStorage 读取（支持动态修改）
+    // const API_BASE_URL = localStorage.getItem('API_BASE_URL') || 'http://localhost:5000';
+
+    console.log(`📍 API Base URL: ${API_BASE_URL}`);
+
+    function updateApiUrl() {
+      const newUrl = document.getElementById('apiBaseUrl').value.trim();
+      if (!newUrl) {
+        log('❌ API URL 不能为空', 'error');
+        return;
+      }
+
+      API_BASE_URL = newUrl;
+      localStorage.setItem('API_BASE_URL', API_BASE_URL);
+      log(`✅ API URL 已更新: ${API_BASE_URL}`, 'success');
+    }
+
+    async function testConnection() {
+      log('🔍 正在测试连接...', 'info');
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/health`);
+        const result = await response.json();
+
+        if (result.status === 'ok') {
+          log(`✅ 连接成功: ${result.message}`, 'success');
+          log(`📍 当前 API URL: ${API_BASE_URL}`, 'info');
+        } else {
+          log(`❌ 服务异常: ${result.message}`, 'error');
+        }
+      } catch (error) {
+        log(`❌ 连接失败: ${error.message}`, 'error');
+        log(`💡 请检查 API URL 是否正确: ${API_BASE_URL}`, 'info');
+      }
+    }
 
     function log(message, type = 'info') {
       const container = document.getElementById('logContainer');

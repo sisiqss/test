@@ -23,6 +23,12 @@ CORS(app)  # 允许跨域
 # 禁用自动重定向
 app.url_map.strict_slashes = False
 
+# 配置：API Base URL（从环境变量读取，默认 localhost）
+API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:5000')
+API_HOST = os.getenv('API_HOST', '0.0.0.0')
+API_PORT = int(os.getenv('API_PORT', '5000'))
+DEBUG_MODE = os.getenv('DEBUG', 'False').lower() == 'true'
+
 # 构建 Agent（全局单例）
 logger.info("🔧 正在构建 Agent...")
 agent = build_agent()
@@ -38,16 +44,16 @@ def index():
     except Exception as e:
         return f"""
         <h1>API 服务运行中</h1>
-        <p>API Base URL: <code>http://localhost:5000</code></p>
+        <p>API Base URL: <code>{API_BASE_URL}</code></p>
         <h2>可用端点：</h2>
         <ul>
-            <li><a href="/api/health">GET /api/health</a> - 健康检查</li>
-            <li><a href="/api/tools">GET /api/tools</a> - 获取工具列表</li>
-            <li>POST /api/agent/chat - Agent 聊天</li>
+            <li><a href="{API_BASE_URL}/api/health">GET /api/health</a> - 健康检查</li>
+            <li><a href="{API_BASE_URL}/api/tools">GET /api/tools</a> - 获取工具列表</li>
+            <li>POST {API_BASE_URL}/api/agent/chat - Agent 聊天</li>
         </ul>
         <h2>测试接口：</h2>
         <pre>
-curl -X POST http://localhost:5000/api/agent/chat \\
+curl -X POST {API_BASE_URL}/api/agent/chat \\
   -H "Content-Type: application/json" \\
   -d '{{
     "tool_name": "login",
@@ -56,7 +62,7 @@ curl -X POST http://localhost:5000/api/agent/chat \\
   }}'
         </pre>
         <h2>测试页面：</h2>
-        <p>请访问 <a href="http://localhost:5000/index.html">http://localhost:5000/index.html</a></p>
+        <p>请访问 <a href="{API_BASE_URL}/index.html">{API_BASE_URL}/index.html</a></p>
         <p style="color: red;">错误：{str(e)}</p>
         """
 
@@ -223,15 +229,17 @@ if __name__ == '__main__':
     print("=" * 60)
     print("🚀 Agent API 服务启动")
     print("=" * 60)
-    print(f"📍 服务地址: http://0.0.0.0:5000")
-    print(f"📊 健康检查: http://localhost:5000/api/health")
-    print(f"🔧 Agent 聊天: http://localhost:5000/api/agent/chat")
-    print(f"🛠️ 工具列表: http://localhost:5000/api/tools")
+    print(f"📍 服务地址: {API_BASE_URL}")
+    print(f"🌐 监听主机: {API_HOST}:{API_PORT}")
+    print(f"📊 健康检查: {API_BASE_URL}/api/health")
+    print(f"🔧 Agent 聊天: {API_BASE_URL}/api/agent/chat")
+    print(f"🛠️ 工具列表: {API_BASE_URL}/api/tools")
+    print(f"🐛 调试模式: {DEBUG_MODE}")
     print("=" * 60)
 
     # 启动服务
     app.run(
-        host='0.0.0.0',
-        port=5000,
-        debug=True
+        host=API_HOST,
+        port=API_PORT,
+        debug=DEBUG_MODE
     )
