@@ -7,7 +7,7 @@ import hashlib
 from datetime import datetime
 from storage.database.shared.model import (
     Base, UserProfile, UserConversationMemory, DailyReport,
-    InvitationCode, UserAccount, UserDailyUsage, GlobalDailyUsage
+    UserAccount, UserDailyUsage, GlobalDailyUsage
 )
 from storage.database.db import get_engine, get_session
 
@@ -58,21 +58,7 @@ def init_default_data():
             else:
                 logger.info("⚠️ 管理员账户已存在，跳过创建")
 
-            # 2. 创建默认邀请码（qss）
-            qss_exists = session.query(InvitationCode).filter_by(code="qss").first()
-            if not qss_exists:
-                default_code = InvitationCode(
-                    code="qss",
-                    is_used=False,
-                    created_by="admin",
-                    created_at=datetime.utcnow()
-                )
-                session.add(default_code)
-                logger.info("✅ 默认邀请码创建成功（qss）")
-            else:
-                logger.info("⚠️ 默认邀请码已存在，跳过创建")
-
-            # 3. 初始化全局每日消耗记录（今天）
+            # 2. 初始化全局每日消耗记录（今天）
             from datetime import date
             today = date.today().strftime("%Y-%m-%d")
             global_usage_exists = session.query(GlobalDailyUsage).filter_by(date=today).first()

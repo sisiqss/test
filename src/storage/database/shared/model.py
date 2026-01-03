@@ -183,30 +183,6 @@ class DailyReport(Base):
     )
 
 
-# 邀请码表
-class InvitationCode(Base):
-    """邀请码表，用于控制用户注册"""
-    __tablename__ = "invitation_code"
-
-    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
-    code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, comment="邀请码（唯一）")
-    is_used: Mapped[bool] = mapped_column(default=False, nullable=False, comment="是否已使用")
-    used_by_user_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, comment="使用的用户ID")
-    used_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="使用时间")
-    created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, comment="创建者（管理员）")
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime,
-        default=datetime.datetime.utcnow,
-        nullable=False,
-        comment="创建时间"
-    )
-    expires_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="过期时间（可选）")
-
-    __table_args__ = (
-        Index("idx_code", "code"),
-    )
-
-
 # 用户账户表（用于账密认证）
 class UserAccount(Base):
     """用户账户表，存储用户名、密码和管理员标识"""
