@@ -2,10 +2,11 @@ import os
 import json
 from typing import Annotated
 from langchain.agents import create_agent
+from langchain.agents.middleware import wrap_tool_call
 from langchain_openai import ChatOpenAI
 from langgraph.graph import MessagesState
 from langgraph.graph.message import add_messages
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage, ToolMessage, AIMessage
 from coze_coding_utils.runtime_ctx.context import default_headers
 from storage.memory.memory_saver import get_memory_saver
 
@@ -56,6 +57,38 @@ def _windowed_messages(old, new):
 
 class AgentState(MessagesState):
     messages: Annotated[list[AnyMessage], _windowed_messages]
+
+@wrap_tool_call
+def handle_tool_errors(request, handler):
+    """
+    统一处理工具执行错误，返回标准化的错误格式。
+    
+    错误格式：
+    {
+        "status": "failed",
+        "error_code": "TOOL_EXECUTION_ERROR",
+        "error_message": "错误描述",
+        "tool_name": "工具名称"
+    }
+    """
+    try:
+        return handler(request)
+    except Exception as e:
+        tool_name = request.tool_call.get("name", "unknown")
+        error_msg = str(e)
+        
+        # 返回标准化的错误响应
+        error_response = {
+            "status": "failed",
+            "error_code": "TOOL_EXECUTION_ERROR",
+            "error_message": f"工具执行失败: {error_msg}",
+            "tool_name": tool_name
+        }
+        
+        return ToolMessage(
+            content=json.dumps(error_response, ensure_ascii=False),
+            tool_call_id=request.tool_call["id"]
+        )
 
 def build_agent(ctx=None):
     workspace_path = os.getenv("COZE_WORKSPACE_PATH", "/workspace/projects")
@@ -145,4 +178,5 @@ def build_agent(ctx=None):
         tools=tools,
         checkpointer=get_memory_saver(),
         state_schema=AgentState,
+        middleware=[handle_tool_errors],
     )
