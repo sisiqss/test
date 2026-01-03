@@ -40,6 +40,7 @@ from tools.quick_report_tool import (
     format_life_report_section,
     check_report_cache
 )
+from tools.daily_fortune_outfit_tool import get_daily_fortune_and_outfit
 # 消耗限制工具
 from tools.usage_limit_tool import (
     check_global_usage_limit,
@@ -179,6 +180,9 @@ def build_agent(ctx=None):
         generate_quick_report,   # 快速生成人生报告
         format_life_report_section,  # 格式化报告板块
         check_report_cache,      # 检查报告缓存
+
+        # 每日运势和穿搭合并工具（推荐前端使用）
+        get_daily_fortune_and_outfit,  # 获取每日运势和穿搭（合并功能）
 
         # 消耗限制工具
         check_global_usage_limit,  # 检查全局消耗限制
