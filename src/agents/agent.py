@@ -34,15 +34,16 @@ from tools.roster_tool import (
     save_user_photo,
     check_user_info_exists
 )
-from tools.daily_report_tool import (
-    get_weather_info,
-    get_fashion_trends,
-    generate_daily_fortune_report,
-    generate_dressing_suggestion,
-    upload_user_photo,
-    generate_outfit_image,
-    generate_complete_daily_report
-)
+# from tools.daily_report_tool import (
+#     get_weather_info,
+#     get_fashion_trends,
+#     generate_daily_fortune_report,
+#     generate_dressing_suggestion,
+#     upload_user_photo,
+#     generate_outfit_image,
+#     generate_complete_daily_report
+# )
+# 已注释：这些工具消耗资源较大，暂时禁用
 
 LLM_CONFIG = "config/agent_llm_config.json"
 
@@ -94,9 +95,9 @@ def build_agent(ctx=None):
         get_weather,        # 天气查询
         dressing_advice,    # 穿搭建议
 
-        # MBTI工具
-        mbti_analysis,      # MBTI分析
-        validate_mbti_with_info,  # MBTI与信息验证
+        # MBTI工具（已禁用：使用Prompt内置知识，避免联网搜索消耗资源）
+        # mbti_analysis,      # MBTI分析（已禁用）
+        # validate_mbti_with_info,  # MBTI与信息验证（已禁用）
 
         # 图表工具
         generate_luck_chart,       # 运势趋势图
@@ -128,14 +129,14 @@ def build_agent(ctx=None):
         save_user_photo,         # 保存用户照片
         check_user_info_exists,  # 检查用户是否已录入信息
 
-        # 每日报告工具
-        get_weather_info,         # 获取天气信息
-        get_fashion_trends,      # 获取流行趋势
-        generate_daily_fortune_report,  # 生成每日运势报告
-        generate_dressing_suggestion,   # 生成穿搭建议
-        upload_user_photo,       # 上传用户照片
-        generate_outfit_image,   # 生成穿搭图片
-        generate_complete_daily_report,  # 生成完整每日报告
+        # 每日报告工具（已禁用高消耗功能）
+        # get_weather_info,         # 获取天气信息（已禁用，使用get_weather替代）
+        # get_fashion_trends,      # 获取流行趋势（已禁用，高消耗）
+        # generate_daily_fortune_report,  # 生成每日运势报告（已禁用，使用bazi_api_analysis替代）
+        # generate_dressing_suggestion,   # 生成穿搭建议（已禁用，使用dressing_advice替代）
+        # upload_user_photo,       # 上传用户照片（已禁用，高消耗）
+        # generate_outfit_image,   # 生成穿搭图片（已禁用，高消耗）
+        # generate_complete_daily_report,  # 生成完整每日报告（已禁用，封装工具）
     ]
     
     return create_agent(
