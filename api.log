@@ -1,0 +1,32 @@
+2026-01-03 23:43:07,967 - __main__ - INFO - 🔧 正在构建 Agent...
+2026-01-03 23:43:08,286 - storage.memory.memory_saver - INFO - Attempting database connection (attempt 1/2)
+2026-01-03 23:43:08,352 - storage.memory.memory_saver - INFO - Database connection established on attempt 1
+2026-01-03 23:43:08,377 - storage.memory.memory_saver - INFO - Memory schema and tables created
+2026-01-03 23:43:08,378 - storage.memory.memory_saver - WARNING - Failed to create AsyncPostgresSaver: AsyncConnectionPool open with no running loop, will fallback to MemorySaver
+2026-01-03 23:43:08,379 - storage.memory.memory_saver - WARNING - Using MemorySaver as fallback checkpointer (data will not persist across restarts)
+2026-01-03 23:43:08,387 - __main__ - INFO - ✅ Agent 构建成功
+============================================================
+🚀 Agent API 服务启动
+============================================================
+📍 服务地址: http://localhost:5001
+🌐 监听主机: 0.0.0.0:5001
+📊 健康检查: http://localhost:5001/api/health
+🔧 Agent 聊天: http://localhost:5001/api/agent/chat
+🛠️ 工具列表: http://localhost:5001/api/tools
+🐛 调试模式: False
+============================================================
+ * Serving Flask app 'backend_api'
+ * Debug mode: off
+2026-01-03 23:43:08,394 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://169.254.110.1:5001
+2026-01-03 23:43:08,395 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-03 23:43:12,468 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 23:43:12] "GET /api/health HTTP/1.1" 200 -
+2026-01-03 23:43:14,589 - __main__ - INFO - 🔧 直接调用工具: login | user_id: admin
+2026-01-03 23:43:14,782 - tools.auth_tool - INFO - ✅ 登录成功 | 用户名: admin | 用户ID: admin | 管理员: True
+2026-01-03 23:43:14,787 - __main__ - INFO - ✅ 工具调用成功: login | 耗时: ...
+2026-01-03 23:43:14,787 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 23:43:14] "POST /api/agent/chat HTTP/1.1" 200 -
+2026-01-03 23:43:16,590 - __main__ - INFO - 🔧 直接调用工具: get_user_info | user_id: admin
+2026-01-03 23:43:16,641 - __main__ - INFO - ✅ 工具调用成功: get_user_info | 耗时: ...
+2026-01-03 23:43:16,641 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 23:43:16] "POST /api/agent/chat HTTP/1.1" 200 -

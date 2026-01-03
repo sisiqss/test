@@ -24,9 +24,9 @@ CORS(app)  # 允许跨域
 app.url_map.strict_slashes = False
 
 # 配置：API Base URL（从环境变量读取，默认 localhost）
-API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:5000')
+API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:5001')
 API_HOST = os.getenv('API_HOST', '0.0.0.0')
-API_PORT = int(os.getenv('API_PORT', '5000'))
+API_PORT = int(os.getenv('API_PORT', '5001'))
 DEBUG_MODE = os.getenv('DEBUG', 'False').lower() == 'true'
 
 # 构建 Agent（全局单例）
