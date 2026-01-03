@@ -1,0 +1,463 @@
+"""
+花名册工具 - 用于管理用户及其社交关系信息
+提供CRUD操作：增删改查
+"""
+import json
+import logging
+from datetime import datetime
+from typing import Optional, List, Dict, Any
+from langchain.tools import tool
+
+from storage.database.db import get_session
+from storage.database.shared.model import (
+    UserProfile,
+    RelationshipType,
+    RelationshipLevel,
+    UserConversationMemory,
+    ConversationType
+)
+
+logger = logging.getLogger(__name__)
+
+
+def _parse_relationship_type(rel_type: str) -> RelationshipType:
+    """解析关系类型字符串为枚举"""
+    rel_type = rel_type.lower().replace(" ", "_")
+    rel_type_map = {
+        "本人": RelationshipType.SELF,
+        "自己": RelationshipType.SELF,
+        "me": RelationshipType.SELF,
+        "同事": RelationshipType.COLLEAGUE,
+        "父母": RelationshipType.PARENT,
+        "父亲": RelationshipType.PARENT,
+        "母亲": RelationshipType.PARENT,
+        "儿女": RelationshipType.CHILD,
+        "儿子": RelationshipType.CHILD,
+        "女儿": RelationshipType.CHILD,
+        "朋友": RelationshipType.FRIEND,
+        "其他": RelationshipType.OTHER,
+        "其它": RelationshipType.OTHER,
+    }
+    return rel_type_map.get(rel_type, RelationshipType.OTHER)
+
+
+def _parse_relationship_level(rel_level: str) -> Optional[RelationshipLevel]:
+    """解析关系级别字符串为枚举"""
+    if not rel_level or rel_level.strip() == "":
+        return None
+
+    rel_level = rel_level.strip()
+    level_map = {
+        "+2": RelationshipLevel.LEVEL_2_SUPERIOR,
+        "+1": RelationshipLevel.LEVEL_1_SUPERIOR,
+        "0": RelationshipLevel.SAME_LEVEL,
+        "-1": RelationshipLevel.LEVEL_1_SUBORDINATE,
+        "-2": RelationshipLevel.LEVEL_2_SUBORDINATE,
+        "上级": RelationshipLevel.LEVEL_1_SUPERIOR,
+        "上两级": RelationshipLevel.LEVEL_2_SUPERIOR,
+        "下属": RelationshipLevel.LEVEL_1_SUBORDINATE,
+        "下两级": RelationshipLevel.LEVEL_2_SUBORDINATE,
+        "平级": RelationshipLevel.SAME_LEVEL,
+        "同级": RelationshipLevel.SAME_LEVEL,
+    }
+    return level_map.get(rel_level)
+
+
+@tool
+def add_roster_entry(
+    user_id: str,
+    name: str,
+    gender: str,
+    relationship_type: str,
+    current_location: str,
+    birth_date: str = "",
+    mbti: str = "",
+    birth_place: str = "",
+    relationship_level: str = "",
+    notes: str = ""
+) -> str:
+    """
+    添加花名册条目
+
+    必填字段：
+    - user_id: 用户ID
+    - name: 姓名
+    - gender: 性别（男/女）
+    - relationship_type: 关系类型（本人/同事/父母/儿女/朋友/其他）
+    - current_location: 现居地
+
+    可选字段：
+    - birth_date: 出生年月日时间（本人必须，其他人可选）
+    - mbti: MBTI类型
+    - birth_place: 出生地
+    - relationship_level: 关系级别（仅同事需要，如：+1、0、-1）
+    - notes: 备注信息
+
+    返回：添加结果
+    """
+    try:
+        with get_session() as session:
+            # 验证必填字段
+            if not all([name, gender, relationship_type, current_location]):
+                return "❌ 添加失败：姓名、性别、关系类型、现居地均为必填字段"
+
+            # 如果是本人，验证出生日期
+            rel_type = _parse_relationship_type(relationship_type)
+            if rel_type == RelationshipType.SELF and not birth_date:
+                return "❌ 添加失败：本人的出生年月日时间为必填字段"
+
+            # 解析关系级别
+            rel_level = None
+            if relationship_level and rel_type == RelationshipType.COLLEAGUE:
+                rel_level = _parse_relationship_level(relationship_level)
+
+            # 创建花名册条目
+            entry = UserProfile(
+                user_id=user_id,
+                name=name.strip(),
+                gender=gender.strip(),
+                relationship_type=rel_type,
+                relationship_level=rel_level,
+                birth_date=birth_date.strip() if birth_date else None,
+                mbti=mbti.strip() if mbti else None,
+                birth_place=birth_place.strip() if birth_place else None,
+                current_location=current_location.strip(),
+                notes=notes.strip() if notes else None,
+            )
+
+            session.add(entry)
+            session.commit()
+            session.refresh(entry)
+
+            logger.info(f"✅ 成功添加花名册条目: {name} (ID: {entry.id})")
+
+            return f"""✅ 添加成功！
+
+**姓名**: {entry.name}
+**关系**: {relationship_type} {' (' + relationship_level + ')' if relationship_level else ''}
+**性别**: {entry.gender}
+**现居地**: {entry.current_location}
+{'**出生日期**: ' + entry.birth_date if entry.birth_date else ''}
+{'**MBTI**: ' + entry.mbti if entry.mbti else ''}
+{'**出生地**: ' + entry.birth_place if entry.birth_place else ''}
+{'**备注**: ' + entry.notes if entry.notes else ''}
+"""
+
+    except Exception as e:
+        logger.error(f"❌ 添加花名册条目失败: {e}")
+        return f"❌ 添加失败：{str(e)}"
+
+
+@tool
+def get_roster_entries(user_id: str, relationship_type: str = "") -> str:
+    """
+    获取花名册列表
+
+    参数：
+    - user_id: 用户ID
+    - relationship_type: 可选，按关系类型筛选（本人/同事/父母/儿女/朋友/其他）
+
+    返回：花名册列表
+    """
+    try:
+        with get_session() as session:
+            query = session.query(UserProfile).filter(UserProfile.user_id == user_id)
+
+            # 按关系类型筛选
+            if relationship_type:
+                rel_type = _parse_relationship_type(relationship_type)
+                query = query.filter(UserProfile.relationship_type == rel_type)
+
+            # 按创建时间倒序
+            entries = query.order_by(UserProfile.created_at.desc()).all()
+
+            if not entries:
+                return "📋 花名册为空，还没有添加任何条目"
+
+            # 格式化输出
+            result = f"📋 **花名册**（共 {len(entries)} 条）\n\n"
+            for entry in entries:
+                rel_type_display = {
+                    RelationshipType.SELF: "本人",
+                    RelationshipType.COLLEAGUE: "同事",
+                    RelationshipType.PARENT: "父母",
+                    RelationshipType.CHILD: "儿女",
+                    RelationshipType.FRIEND: "朋友",
+                    RelationshipType.OTHER: "其他",
+                }.get(entry.relationship_type, entry.relationship_type)
+
+                rel_level_display = f" ({entry.relationship_level.value})" if entry.relationship_level else ""
+
+                result += f"**{entry.name}** - {rel_type_display}{rel_level_display}\n"
+                result += f"  性别: {entry.gender} | "
+                result += f"现居地: {entry.current_location}\n"
+                if entry.birth_date:
+                    result += f"  出生日期: {entry.birth_date}\n"
+                if entry.mbti:
+                    result += f"  MBTI: {entry.mbti}\n"
+                if entry.bazi:
+                    result += f"  八字: {entry.bazi[:20]}...\n"  # 只显示前20个字符
+                if entry.birth_place:
+                    result += f"  出生地: {entry.birth_place}\n"
+                if entry.notes:
+                    result += f"  备注: {entry.notes}\n"
+                result += f"  ID: {entry.id} | 更新时间: {entry.updated_at.strftime('%Y-%m-%d %H:%M')}\n"
+                result += "\n"
+
+            return result
+
+    except Exception as e:
+        logger.error(f"❌ 获取花名册失败: {e}")
+        return f"❌ 获取失败：{str(e)}"
+
+
+@tool
+def get_roster_entry_by_id(entry_id: int) -> str:
+    """
+    根据ID获取花名册条目详情
+
+    参数：
+    - entry_id: 条目ID
+
+    返回：条目详情
+    """
+    try:
+        with get_session() as session:
+            entry = session.query(UserProfile).filter(UserProfile.id == entry_id).first()
+
+            if not entry:
+                return f"❌ 未找到ID为 {entry_id} 的条目"
+
+            rel_type_display = {
+                RelationshipType.SELF: "本人",
+                RelationshipType.COLLEAGUE: "同事",
+                RelationshipType.PARENT: "父母",
+                RelationshipType.CHILD: "儿女",
+                RelationshipType.FRIEND: "朋友",
+                RelationshipType.OTHER: "其他",
+            }.get(entry.relationship_type, entry.relationship_type)
+
+            rel_level_display = f" ({entry.relationship_level.value})" if entry.relationship_level else ""
+
+            result = f"""📋 **花名册条目详情**
+
+**ID**: {entry.id}
+**姓名**: {entry.name}
+**性别**: {entry.gender}
+**关系**: {rel_type_display}{rel_level_display}
+**现居地**: {entry.current_location}
+{'**出生日期**: ' + entry.birth_date if entry.birth_date else ''}
+{'**八字**: ' + entry.bazi if entry.bazi else ''}
+{'**MBTI**: ' + entry.mbti if entry.mbti else ''}
+{'**出生地**: ' + entry.birth_place if entry.birth_place else ''}
+{'**备注**: ' + entry.notes if entry.notes else ''}
+**创建时间**: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+**更新时间**: {entry.updated_at.strftime('%Y-%m-%d %H:%M:%S')}
+"""
+            return result
+
+    except Exception as e:
+        logger.error(f"❌ 获取花名册条目失败: {e}")
+        return f"❌ 获取失败：{str(e)}"
+
+
+@tool
+def update_roster_entry(
+    entry_id: int,
+    name: str = "",
+    gender: str = "",
+    current_location: str = "",
+    birth_date: str = "",
+    mbti: str = "",
+    birth_place: str = "",
+    relationship_type: str = "",
+    relationship_level: str = "",
+    notes: str = ""
+) -> str:
+    """
+    更新花名册条目
+
+    参数：
+    - entry_id: 条目ID（必须）
+    - name: 姓名（可选）
+    - gender: 性别（可选）
+    - current_location: 现居地（可选）
+    - birth_date: 出生日期（可选）
+    - mbti: MBTI类型（可选）
+    - birth_place: 出生地（可选）
+    - relationship_type: 关系类型（可选）
+    - relationship_level: 关系级别（可选）
+    - notes: 备注（可选）
+
+    返回：更新结果
+    """
+    try:
+        with get_session() as session:
+            entry = session.query(UserProfile).filter(UserProfile.id == entry_id).first()
+
+            if not entry:
+                return f"❌ 未找到ID为 {entry_id} 的条目"
+
+            # 更新提供的字段
+            updated_fields = []
+            if name:
+                entry.name = name.strip()
+                updated_fields.append("姓名")
+            if gender:
+                entry.gender = gender.strip()
+                updated_fields.append("性别")
+            if current_location:
+                entry.current_location = current_location.strip()
+                updated_fields.append("现居地")
+            if birth_date:
+                entry.birth_date = birth_date.strip()
+                updated_fields.append("出生日期")
+            if mbti:
+                entry.mbti = mbti.strip()
+                updated_fields.append("MBTI")
+            if birth_place:
+                entry.birth_place = birth_place.strip()
+                updated_fields.append("出生地")
+            if notes:
+                entry.notes = notes.strip()
+                updated_fields.append("备注")
+            if relationship_type:
+                rel_type = _parse_relationship_type(relationship_type)
+                entry.relationship_type = rel_type
+                updated_fields.append("关系类型")
+            if relationship_level and entry.relationship_type == RelationshipType.COLLEAGUE:
+                rel_level = _parse_relationship_level(relationship_level)
+                entry.relationship_level = rel_level
+                updated_fields.append("关系级别")
+
+            entry.updated_at = datetime.utcnow()
+            session.commit()
+
+            logger.info(f"✅ 成功更新花名册条目: {entry.name} (ID: {entry.id})")
+
+            return f"""✅ 更新成功！
+
+**更新了以下字段**: {', '.join(updated_fields)}
+
+**姓名**: {entry.name}
+**关系**: {entry.relationship_type} {' (' + (entry.relationship_level.value if entry.relationship_level else '') + ')' if entry.relationship_level else ''}
+**性别**: {entry.gender}
+**现居地**: {entry.current_location}
+{'**出生日期**: ' + entry.birth_date if entry.birth_date else ''}
+{'**MBTI**: ' + entry.mbti if entry.mbti else ''}
+{'**出生地**: ' + entry.birth_place if entry.birth_place else ''}
+"""
+
+    except Exception as e:
+        logger.error(f"❌ 更新花名册条目失败: {e}")
+        return f"❌ 更新失败：{str(e)}"
+
+
+@tool
+def delete_roster_entry(entry_id: int) -> str:
+    """
+    删除花名册条目
+
+    参数：
+    - entry_id: 条目ID
+
+    返回：删除结果
+    """
+    try:
+        with get_session() as session:
+            entry = session.query(UserProfile).filter(UserProfile.id == entry_id).first()
+
+            if not entry:
+                return f"❌ 未找到ID为 {entry_id} 的条目"
+
+            entry_name = entry.name
+            session.delete(entry)
+            session.commit()
+
+            logger.info(f"✅ 成功删除花名册条目: {entry_name} (ID: {entry_id})")
+
+            return f"✅ 删除成功！已删除条目：{entry_name}"
+
+    except Exception as e:
+        logger.error(f"❌ 删除花名册条目失败: {e}")
+        return f"❌ 删除失败：{str(e)}"
+
+
+@tool
+def search_roster_entries(user_id: str, keyword: str) -> str:
+    """
+    搜索花名册条目
+
+    参数：
+    - user_id: 用户ID
+    - keyword: 搜索关键词（姓名、MBTI、备注等）
+
+    返回：匹配的条目列表
+    """
+    try:
+        with get_session() as session:
+            keyword = keyword.strip()
+
+            # 搜索姓名、MBTI、备注
+            query = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                (UserProfile.name.ilike(f"%{keyword}%") |
+                 UserProfile.mbti.ilike(f"%{keyword}%") |
+                 UserProfile.notes.ilike(f"%{keyword}%"))
+            )
+
+            entries = query.order_by(UserProfile.created_at.desc()).all()
+
+            if not entries:
+                return f"🔍 未找到包含关键词 '{keyword}' 的条目"
+
+            # 格式化输出
+            result = f"🔍 **搜索结果**（关键词: '{keyword}'，共 {len(entries)} 条）\n\n"
+            for entry in entries:
+                result += f"**{entry.name}** (ID: {entry.id})\n"
+                if entry.mbti:
+                    result += f"  MBTI: {entry.mbti}\n"
+                if entry.notes:
+                    result += f"  备注: {entry.notes[:50]}...\n"
+                result += "\n"
+
+            return result
+
+    except Exception as e:
+        logger.error(f"❌ 搜索花名册失败: {e}")
+        return f"❌ 搜索失败：{str(e)}"
+
+
+@tool
+def add_user_bazi(user_id: str, bazi: str) -> str:
+    """
+    为用户添加八字信息（系统产出）
+
+    参数：
+    - user_id: 用户ID
+    - bazi: 八字信息
+
+    返回：添加结果
+    """
+    try:
+        with get_session() as session:
+            # 查找本人的条目
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return "❌ 未找到本人的信息，请先添加本人信息到花名册"
+
+            entry.bazi = bazi.strip()
+            entry.updated_at = datetime.utcnow()
+            session.commit()
+
+            logger.info(f"✅ 成功为用户 {entry.name} 添加八字信息")
+
+            return f"✅ 成功为 {entry.name} 添加八字信息！"
+
+    except Exception as e:
+        logger.error(f"❌ 添加八字信息失败: {e}")
+        return f"❌ 添加失败：{str(e)}"

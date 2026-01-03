@@ -17,6 +17,15 @@ from tools.mbti_tool import mbti_analysis, validate_mbti_with_info
 from tools.chart_tool import generate_luck_chart, predict_monthly_luck, generate_combined_chart
 from tools.relationship_tool import relationship_advice, conflict_resolution
 from tools.career_transition_tool import career_transition_advice, skill_gap_analysis
+from tools.roster_tool import (
+    add_roster_entry,
+    get_roster_entries,
+    get_roster_entry_by_id,
+    update_roster_entry,
+    delete_roster_entry,
+    search_roster_entries,
+    add_user_bazi
+)
 
 LLM_CONFIG = "config/agent_llm_config.json"
 
@@ -60,30 +69,39 @@ def build_agent(ctx=None):
         # 命理分析工具
         bazi_api_analysis,  # 八字分析（支持外部API和降级）
         ziwei_analysis,     # 紫微斗数分析（支持外部API和降级）
-        
+
         # 职场建议工具
         career_advice,      # 职场建议
-        
+
         # 天气和穿搭工具
         get_weather,        # 天气查询
         dressing_advice,     # 穿搭建议
-        
+
         # MBTI工具
         mbti_analysis,      # MBTI分析
         validate_mbti_with_info,  # MBTI与信息验证
-        
+
         # 图表工具
         generate_luck_chart,       # 运势趋势图
         predict_monthly_luck,     # 预测月度运势
         generate_combined_chart,  # 综合趋势图
-        
+
         # 人际关系工具
         relationship_advice,      # 人际关系建议
         conflict_resolution,      # 冲突解决建议
-        
+
         # 职业转型工具
         career_transition_advice, # 职业转型建议
-        skill_gap_analysis        # 技能差距分析
+        skill_gap_analysis,       # 技能差距分析
+
+        # 花名册工具
+        add_roster_entry,         # 添加花名册条目
+        get_roster_entries,       # 获取花名册列表
+        get_roster_entry_by_id,   # 获取花名册条目详情
+        update_roster_entry,      # 更新花名册条目
+        delete_roster_entry,      # 删除花名册条目
+        search_roster_entries,    # 搜索花名册条目
+        add_user_bazi,           # 为用户添加八字信息
     ]
     
     return create_agent(

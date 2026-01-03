@@ -537,6 +537,143 @@ async def health_check():
 async def http_graph_inout_parameter(request: Request):
     return service.graph_inout_schema()
 
+
+# 花名册管理API接口
+
+from pydantic import BaseModel
+from typing import Optional
+
+
+class RosterEntryCreate(BaseModel):
+    user_id: str
+    name: str
+    gender: str
+    relationship_type: str
+    current_location: str
+    birth_date: Optional[str] = ""
+    mbti: Optional[str] = ""
+    birth_place: Optional[str] = ""
+    relationship_level: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
+class RosterEntryUpdate(BaseModel):
+    name: Optional[str] = ""
+    gender: Optional[str] = ""
+    current_location: Optional[str] = ""
+    birth_date: Optional[str] = ""
+    mbti: Optional[str] = ""
+    birth_place: Optional[str] = ""
+    relationship_type: Optional[str] = ""
+    relationship_level: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
+@app.post("/api/roster")
+async def add_roster(entry: RosterEntryCreate):
+    """添加花名册条目"""
+    from tools.roster_tool import add_roster_entry
+    try:
+        result = add_roster_entry(
+            user_id=entry.user_id,
+            name=entry.name,
+            gender=entry.gender,
+            relationship_type=entry.relationship_type,
+            current_location=entry.current_location,
+            birth_date=entry.birth_date or "",
+            mbti=entry.mbti or "",
+            birth_place=entry.birth_place or "",
+            relationship_level=entry.relationship_level or "",
+            notes=entry.notes or ""
+        )
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error adding roster entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/roster")
+async def get_roster(user_id: str, relationship_type: str = ""):
+    """获取花名册列表"""
+    from tools.roster_tool import get_roster_entries
+    try:
+        result = get_roster_entries(user_id=user_id, relationship_type=relationship_type)
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error getting roster: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/roster/{entry_id}")
+async def get_roster_detail(entry_id: int):
+    """获取花名册条目详情"""
+    from tools.roster_tool import get_roster_entry_by_id
+    try:
+        result = get_roster_entry_by_id(entry_id=entry_id)
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error getting roster entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/roster/{entry_id}")
+async def update_roster(entry_id: int, entry: RosterEntryUpdate):
+    """更新花名册条目"""
+    from tools.roster_tool import update_roster_entry
+    try:
+        result = update_roster_entry(
+            entry_id=entry_id,
+            name=entry.name or "",
+            gender=entry.gender or "",
+            current_location=entry.current_location or "",
+            birth_date=entry.birth_date or "",
+            mbti=entry.mbti or "",
+            birth_place=entry.birth_place or "",
+            relationship_type=entry.relationship_type or "",
+            relationship_level=entry.relationship_level or "",
+            notes=entry.notes or ""
+        )
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error updating roster entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/roster/{entry_id}")
+async def delete_roster(entry_id: int):
+    """删除花名册条目"""
+    from tools.roster_tool import delete_roster_entry
+    try:
+        result = delete_roster_entry(entry_id=entry_id)
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error deleting roster entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/roster/search")
+async def search_roster(user_id: str, keyword: str):
+    """搜索花名册条目"""
+    from tools.roster_tool import search_roster_entries
+    try:
+        result = search_roster_entries(user_id=user_id, keyword=keyword)
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error searching roster: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/roster/bazi")
+async def update_bazi(user_id: str, bazi: str):
+    """为用户添加八字信息"""
+    from tools.roster_tool import add_user_bazi
+    try:
+        result = add_user_bazi(user_id=user_id, bazi=bazi)
+        return {"success": True, "message": result}
+    except Exception as e:
+        logger.error(f"Error updating bazi: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Start FastAPI server")
     parser.add_argument("-m", type=str, default="http", help="Run mode, support http,flow,node")

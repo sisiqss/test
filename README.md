@@ -9,6 +9,8 @@
 - 📈 **运势趋势图**：可视化运势变化趋势
 - 👥 **人际关系**：性格匹配与沟通建议
 - 💼 **职业转型**：可迁移技能分析与转型路径
+- 📚 **花名册管理**：管理用户及其社交关系信息（本人、同事、父母、儿女、朋友、其他）
+- 💾 **沟通记忆**：记录用户与Agent的重要对话内容，用于后续个性化服务
 
 ## 🚀 快速开始
 
@@ -54,6 +56,8 @@ bash scripts/local_run.sh -m agent
 
 ### 功能文档
 - [功能总结](docs/FEATURE_SUMMARY.md) - 完整功能说明
+- [花名册功能说明](docs/ROSTER_FEATURE.md) - 花名册管理功能详细说明
+- [花名册使用指南](docs/ROSTER_USAGE_GUIDE.md) - 花名册使用场景和示例
 
 ## 🎯 项目结构
 
@@ -72,7 +76,8 @@ bash scripts/local_run.sh -m agent
 │   │   ├── mbti_tool.py           # MBTI分析工具
 │   │   ├── chart_tool.py          # 图表生成工具
 │   │   ├── relationship_tool.py   # 人际关系工具
-│   │   └── career_transition_tool.py  # 职业转型工具
+│   │   ├── career_transition_tool.py  # 职业转型工具
+│   │   └── roster_tool.py         # 花名册管理工具
 │   ├── storage                # 存储
 │   └── main.py                # 主入口
 ├── scripts                   # 脚本
