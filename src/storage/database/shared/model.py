@@ -60,6 +60,13 @@ class UserProfile(Base):
     mbti: Mapped[Optional[str]] = mapped_column(String(10), nullable=True, comment="MBTI类型")
     birth_place: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, comment="出生地")
     current_location: Mapped[str] = mapped_column(String(255), nullable=False, comment="现居地")
+
+    # 职场信息（可缺省，在用户查看职场相关信息时引导填写）
+    company_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, comment="公司名称")
+    company_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="公司类型（如：国企、私企、外企、互联网、金融等）")
+    job_title: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="职位类型（如：产品经理、工程师、运营等）")
+    job_level: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="职级（如：P6、P7、高级、经理等）")
+
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="备注信息")
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,

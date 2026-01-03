@@ -63,6 +63,15 @@ def _parse_relationship_level(rel_level: str) -> Optional[RelationshipLevel]:
     return level_map.get(rel_level)
 
 
+def _format_relationship_level(rel_level: Optional[RelationshipLevel]) -> str:
+    """安全地格式化关系级别为字符串"""
+    if rel_level is None:
+        return ""
+    if isinstance(rel_level, RelationshipLevel):
+        return rel_level.value
+    return str(rel_level)
+
+
 @tool
 def add_roster_entry(
     user_id: str,
@@ -74,6 +83,10 @@ def add_roster_entry(
     mbti: str = "",
     birth_place: str = "",
     relationship_level: str = "",
+    company_name: str = "",
+    company_type: str = "",
+    job_title: str = "",
+    job_level: str = "",
     notes: str = ""
 ) -> str:
     """
@@ -91,6 +104,10 @@ def add_roster_entry(
     - mbti: MBTI类型
     - birth_place: 出生地
     - relationship_level: 关系级别（仅同事需要，如：+1、0、-1）
+    - company_name: 公司名称（职场信息，可缺省）
+    - company_type: 公司类型（如：国企、私企、外企、互联网、金融等）
+    - job_title: 职位类型（如：产品经理、工程师、运营等）
+    - job_level: 职级（如：P6、P7、高级、经理等）
     - notes: 备注信息
 
     返回：添加结果
@@ -122,6 +139,10 @@ def add_roster_entry(
                 mbti=mbti.strip() if mbti else None,
                 birth_place=birth_place.strip() if birth_place else None,
                 current_location=current_location.strip(),
+                company_name=company_name.strip() if company_name else None,
+                company_type=company_type.strip() if company_type else None,
+                job_title=job_title.strip() if job_title else None,
+                job_level=job_level.strip() if job_level else None,
                 notes=notes.strip() if notes else None,
             )
 
@@ -140,6 +161,10 @@ def add_roster_entry(
 {'**出生日期**: ' + entry.birth_date if entry.birth_date else ''}
 {'**MBTI**: ' + entry.mbti if entry.mbti else ''}
 {'**出生地**: ' + entry.birth_place if entry.birth_place else ''}
+{'**公司名称**: ' + entry.company_name if entry.company_name else ''}
+{'**公司类型**: ' + entry.company_type if entry.company_type else ''}
+{'**职位类型**: ' + entry.job_title if entry.job_title else ''}
+{'**职级**: ' + entry.job_level if entry.job_level else ''}
 {'**备注**: ' + entry.notes if entry.notes else ''}
 """
 
@@ -186,7 +211,7 @@ def get_roster_entries(user_id: str, relationship_type: str = "") -> str:
                     RelationshipType.OTHER: "其他",
                 }.get(entry.relationship_type, entry.relationship_type)
 
-                rel_level_display = f" ({entry.relationship_level.value})" if entry.relationship_level else ""
+                rel_level_display = f" ({_format_relationship_level(entry.relationship_level)})"
 
                 result += f"**{entry.name}** - {rel_type_display}{rel_level_display}\n"
                 result += f"  性别: {entry.gender} | "
@@ -199,6 +224,14 @@ def get_roster_entries(user_id: str, relationship_type: str = "") -> str:
                     result += f"  八字: {entry.bazi[:20]}...\n"  # 只显示前20个字符
                 if entry.birth_place:
                     result += f"  出生地: {entry.birth_place}\n"
+                if entry.company_name:
+                    result += f"  公司名称: {entry.company_name}\n"
+                if entry.company_type:
+                    result += f"  公司类型: {entry.company_type}\n"
+                if entry.job_title:
+                    result += f"  职位: {entry.job_title}\n"
+                if entry.job_level:
+                    result += f"  职级: {entry.job_level}\n"
                 if entry.notes:
                     result += f"  备注: {entry.notes}\n"
                 result += f"  ID: {entry.id} | 更新时间: {entry.updated_at.strftime('%Y-%m-%d %H:%M')}\n"
@@ -237,7 +270,7 @@ def get_roster_entry_by_id(entry_id: int) -> str:
                 RelationshipType.OTHER: "其他",
             }.get(entry.relationship_type, entry.relationship_type)
 
-            rel_level_display = f" ({entry.relationship_level.value})" if entry.relationship_level else ""
+            rel_level_display = f" ({_format_relationship_level(entry.relationship_level)})"
 
             result = f"""📋 **花名册条目详情**
 
@@ -250,6 +283,10 @@ def get_roster_entry_by_id(entry_id: int) -> str:
 {'**八字**: ' + entry.bazi if entry.bazi else ''}
 {'**MBTI**: ' + entry.mbti if entry.mbti else ''}
 {'**出生地**: ' + entry.birth_place if entry.birth_place else ''}
+{'**公司名称**: ' + entry.company_name if entry.company_name else ''}
+{'**公司类型**: ' + entry.company_type if entry.company_type else ''}
+{'**职位类型**: ' + entry.job_title if entry.job_title else ''}
+{'**职级**: ' + entry.job_level if entry.job_level else ''}
 {'**备注**: ' + entry.notes if entry.notes else ''}
 **创建时间**: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}
 **更新时间**: {entry.updated_at.strftime('%Y-%m-%d %H:%M:%S')}
@@ -272,6 +309,10 @@ def update_roster_entry(
     birth_place: str = "",
     relationship_type: str = "",
     relationship_level: str = "",
+    company_name: str = "",
+    company_type: str = "",
+    job_title: str = "",
+    job_level: str = "",
     notes: str = ""
 ) -> str:
     """
@@ -287,6 +328,10 @@ def update_roster_entry(
     - birth_place: 出生地（可选）
     - relationship_type: 关系类型（可选）
     - relationship_level: 关系级别（可选）
+    - company_name: 公司名称（可选）
+    - company_type: 公司类型（可选）
+    - job_title: 职位类型（可选）
+    - job_level: 职级（可选）
     - notes: 备注（可选）
 
     返回：更新结果
@@ -318,9 +363,6 @@ def update_roster_entry(
             if birth_place:
                 entry.birth_place = birth_place.strip()
                 updated_fields.append("出生地")
-            if notes:
-                entry.notes = notes.strip()
-                updated_fields.append("备注")
             if relationship_type:
                 rel_type = _parse_relationship_type(relationship_type)
                 entry.relationship_type = rel_type
@@ -329,6 +371,21 @@ def update_roster_entry(
                 rel_level = _parse_relationship_level(relationship_level)
                 entry.relationship_level = rel_level
                 updated_fields.append("关系级别")
+            if company_name:
+                entry.company_name = company_name.strip()
+                updated_fields.append("公司名称")
+            if company_type:
+                entry.company_type = company_type.strip()
+                updated_fields.append("公司类型")
+            if job_title:
+                entry.job_title = job_title.strip()
+                updated_fields.append("职位类型")
+            if job_level:
+                entry.job_level = job_level.strip()
+                updated_fields.append("职级")
+            if notes:
+                entry.notes = notes.strip()
+                updated_fields.append("备注")
 
             entry.updated_at = datetime.utcnow()
             session.commit()
@@ -340,12 +397,16 @@ def update_roster_entry(
 **更新了以下字段**: {', '.join(updated_fields)}
 
 **姓名**: {entry.name}
-**关系**: {entry.relationship_type} {' (' + (entry.relationship_level.value if entry.relationship_level else '') + ')' if entry.relationship_level else ''}
+**关系**: {entry.relationship_type} {' (' + _format_relationship_level(entry.relationship_level) + ')' if _format_relationship_level(entry.relationship_level) else ''}
 **性别**: {entry.gender}
 **现居地**: {entry.current_location}
 {'**出生日期**: ' + entry.birth_date if entry.birth_date else ''}
 {'**MBTI**: ' + entry.mbti if entry.mbti else ''}
 {'**出生地**: ' + entry.birth_place if entry.birth_place else ''}
+{'**公司名称**: ' + entry.company_name if entry.company_name else ''}
+{'**公司类型**: ' + entry.company_type if entry.company_type else ''}
+{'**职位类型**: ' + entry.job_title if entry.job_title else ''}
+{'**职级**: ' + entry.job_level if entry.job_level else ''}
 """
 
     except Exception as e:
