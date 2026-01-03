@@ -57,6 +57,15 @@ from tools.auth_tool import (
     get_user_info,
     reset_password
 )
+# 通用数据库工具
+from tools.database_tool import (
+    query_user_by_id,
+    query_contacts,
+    query_user_reports,
+    update_user_profile,
+    add_contact,
+    save_report
+)
 # from tools.daily_report_tool import (
 #     get_weather_info,
 #     get_fashion_trends,
@@ -205,6 +214,14 @@ def build_agent(ctx=None):
         check_admin,               # 检查管理员权限
         get_user_info,             # 获取用户信息
         reset_password,            # 重置密码
+
+        # 通用数据库工具（前端可直接调用）
+        query_user_by_id,          # 查询用户信息（对应users表）
+        query_contacts,            # 查询联系人列表（对应contacts表）
+        query_user_reports,        # 查询用户报告（对应user_reports表）
+        update_user_profile,       # 更新用户档案
+        add_contact,               # 添加联系人
+        save_report,               # 保存报告
 
         # 每日报告工具（已禁用高消耗功能）
         # get_weather_info,         # 获取天气信息（已禁用，使用get_weather替代）
