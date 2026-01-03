@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent API 测试页面</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+
+    .test-section h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .log-container {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid #333;
+    }
+
+    .log-entry {
+      margin-bottom: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .log-time {
+      color: #888;
+      margin-right: 10px;
+    }
+
+    .log-success {
+      color: #4ec9b0;
+    }
+
+    .log-error {
+      color: #f48771;
+    }
+
+    .log-info {
+      color: #9cdcfe;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .input-group input,
+    .input-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .input-group textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    .status-ok {
+      background: #4ec9b0;
+      color: white;
+    }
+
+    .status-error {
+      background: #f48771;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Agent API 测试页面</h1>
+
+    <!-- 状态检查 -->
+    <div class="test-section">
+      <h2>📊 服务状态检查</h2>
+      <button onclick="checkHealth()">检查服务状态</button>
+      <button onclick="getTools()">获取工具列表</button>
+      <span id="healthStatus" class="status-badge" style="display:none"></span>
+    </div>
+
+    <!-- 登录测试 -->
+    <div class="test-section">
+      <h2>🔐 登录测试</h2>
+      <div class="input-group">
+        <label>用户名:</label>
+        <input type="text" id="loginUsername" value="admin">
+      </div>
+      <div class="input-group">
+        <label>密码:</label>
+        <input type="password" id="loginPassword" value="admin">
+      </div>
+      <button onclick="testLogin()">测试登录</button>
+    </div>
+
+    <!-- 用户信息查询 -->
+    <div class="test-section">
+      <h2>👤 用户信息查询</h2>
+      <div class="input-group">
+        <label>用户ID:</label>
+        <input type="text" id="queryUserId" value="admin">
+      </div>
+      <button onclick="testQueryUser()">查询用户信息</button>
+    </div>
+
+    <!-- 联系人管理 -->
+    <div class="test-section">
+      <h2>👥 联系人管理</h2>
+      <div class="input-group">
+        <label>联系人数据 (JSON):</label>
+        <textarea id="contactData">{
+  "name": "测试用户",
+  "gender": "男",
+  "relationship_type": "colleague",
+  "current_location": "北京"
+}</textarea>
+      </div>
+      <button onclick="testAddContact()">添加联系人</button>
+      <button onclick="testQueryContacts()">查询联系人列表</button>
+    </div>
+
+    <!-- 每日运势和穿搭 -->
+    <div class="test-section">
+      <h2>🌟 每日运势和穿搭</h2>
+      <div class="input-group">
+        <label>日期 (YYYY-MM-DD，可选):</label>
+        <input type="text" id="fortuneDate" value="2025-01-03">
+      </div>
+      <button onclick="testDailyFortune()">获取每日运势和穿搭</button>
+    </div>
+
+    <!-- 消耗统计 -->
+    <div class="test-section">
+      <h2>📊 消耗统计</h2>
+      <div class="input-group">
+        <label>日期 (可选):</label>
+        <input type="text" id="usageDate" placeholder="2025-01-03">
+      </div>
+      <button onclick="testUsageStats()">获取消耗统计</button>
+    </div>
+
+    <!-- 普通对话 -->
+    <div class="test-section">
+      <h2>💬 普通对话</h2>
+      <div class="input-group">
+        <label>消息:</label>
+        <textarea id="chatMessage">你好，帮我查看人生解读</textarea>
+      </div>
+      <button onclick="testChat()">发送消息</button>
+    </div>
+
+    <!-- 日志输出 -->
+    <div class="test-section">
+      <h2>📋 操作日志</h2>
+      <button onclick="clearLog()">清空日志</button>
+      <button onclick="runAllTests()">运行所有测试</button>
+      <div class="log-container" id="logContainer">
+        <div class="log-entry log-info">✅ 日志已初始化</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:5000';
+
+    function log(message, type = 'info') {
+      const container = document.getElementById('logContainer');
+      const time = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+      container.appendChild(entry);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('logContainer').innerHTML = '<div class="log-entry log-info">✅ 日志已清空</div>';
+    }
+
+    async function callAPI(endpoint, data = {}) {
+      try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.status === 'failed') {
+          throw new Error(result.error_message || 'API 调用失败');
+        }
+
+        return result;
+      } catch (error) {
+        log(`❌ API 调用失败: ${error.message}`, 'error');
+        throw error;
+      }
+    }
+
+    async function checkHealth() {
+      log('🔍 正在检查服务状态...', 'info');
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/health`);
+        const result = await response.json();
+
+        if (result.status === 'ok') {
+          log(`✅ 服务状态正常: ${result.message}`, 'success');
+          document.getElementById('healthStatus').textContent = '正常';
+          document.getElementById('healthStatus').className = 'status-badge status-ok';
+          document.getElementById('healthStatus').style.display = 'inline-block';
+        }
+      } catch (error) {
+        log(`❌ 服务不可用: ${error.message}`, 'error');
+        document.getElementById('healthStatus').textContent = '异常';
+        document.getElementById('healthStatus').className = 'status-badge status-error';
+        document.getElementById('healthStatus').style.display = 'inline-block';
+      }
+    }
+
+    async function getTools() {
+      log('🛠️ 正在获取工具列表...', 'info');
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/tools`);
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          log(`✅ 找到 ${result.total} 个工具:`, 'success');
+          result.tools.forEach(tool => {
+            log(`  - ${tool.name}: ${tool.description.substring(0, 50)}...`, 'info');
+          });
+        }
+      } catch (error) {
+        log(`❌ 获取工具列表失败: ${error.message}`, 'error');
+      }
+    }
+
+    async function testLogin() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      log(`🔐 正在登录 (用户名: ${username})...`, 'info');
+
+      try {
+        const result = await callAPI('/api/agent/chat', {
+          tool_name: 'login',
+          tool_params: {
+            username: username,
+            password: password
+          },
+          user_id: username,
+          message: '登录'
+        });
+
+        log(`✅ 登录成功! 用户ID: ${result.data.split('**用户ID**: ')[1].split('\n')[0]}`, 'success');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function testQueryUser() {
+      const userId = document.getElementById('queryUserId').value;
+      log(`🔍 正在查询用户信息 (user_id: ${userId})...`, 'info');
+
+      try {
+        const result = await callAPI('/api/agent/chat', {
+          tool_name: 'query_user_by_id',
+          tool_params: {
+            user_id: userId
+          },
+          user_id: userId,
+          message: '查询用户信息'
+        });
+
+        log(`✅ 查询成功!`, 'success');
+        log(result.data.substring(0, 200) + '...', 'info');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function testAddContact() {
+      const userId = document.getElementById('loginUsername').value;
+      const contactData = document.getElementById('contactData').value;
+
+      log(`👥 正在添加联系人...`, 'info');
+
+      try {
+        const result = await callAPI('/api/agent/chat', {
+          tool_name: 'add_contact',
+          tool_params: {
+            user_id: userId,
+            contact_data: contactData
+          },
+          user_id: userId,
+          message: '添加联系人'
+        });
+
+        log(`✅ 添加成功!`, 'success');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function testQueryContacts() {
+      const userId = document.getElementById('loginUsername').value;
+      log(`👥 正在查询联系人列表...`, 'info');
+
+      try {
+        const result = await callAPI('/api/agent/chat', {
+          tool_name: 'query_contacts',
+          tool_params: {
+            user_id: userId
+          },
+          user_id: userId,
+          message: '查询联系人列表'
+        });
+
+        log(`✅ 查询成功!`, 'success');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function testDailyFortune() {
+      const userId = document.getElementById('loginUsername').value;
+      const date = document.getElementById('fortuneDate').value;
+
+      log(`🌟 正在获取每日运势和穿搭...`, 'info');
+
+      try {
+        const result = await callAPI('/api/agent/chat', {
+          tool_name: 'get_daily_fortune_and_outfit',
+          tool_params: {
+            user_id: userId,
+            report_date: date
+          },
+          user_id: userId,
+          message: '获取每日运势和穿搭'
+        });
+
+        log(`✅ 获取成功!`, 'success');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function testUsageStats() {
+      const userId = document.getElementById('loginUsername').value;
+      const date = document.getElementById('usageDate').value;
+
+      log(`📊 正在获取消耗统计...`, 'info');
+
+      try {
+        const params = {
+          admin_user_id: userId
+        };
+
+        if (date) {
+          params.date_str = date;
+        }
+
+        const result = await callAPI('/api/agent/chat', {
+          tool_name: 'get_usage_statistics',
+          tool_params: params,
+          user_id: userId,
+          message: '获取消耗统计'
+        });
+
+        log(`✅ 获取成功!`, 'success');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function testChat() {
+      const userId = document.getElementById('loginUsername').value;
+      const message = document.getElementById('chatMessage').value;
+
+      log(`💬 正在发送消息...`, 'info');
+
+      try {
+        const result = await callAPI('/api/agent/chat', {
+          message: message,
+          user_id: userId
+        });
+
+        log(`✅ 响应成功!`, 'success');
+        log(result.data.substring(0, 300) + '...', 'info');
+      } catch (error) {
+        // 错误已在 log 中处理
+      }
+    }
+
+    async function runAllTests() {
+      clearLog();
+      log('🚀 开始运行所有测试...', 'info');
+
+      try {
+        await checkHealth();
+        await new Promise(r => setTimeout(r, 500));
+
+        await getTools();
+        await new Promise(r => setTimeout(r, 500));
+
+        await testLogin();
+        await new Promise(r => setTimeout(r, 500));
+
+        await testQueryUser();
+        await new Promise(r => setTimeout(r, 500));
+
+        await testAddContact();
+        await new Promise(r => setTimeout(r, 500));
+
+        await testQueryContacts();
+        await new Promise(r => setTimeout(r, 500));
+
+        await testDailyFortune();
+        await new Promise(r => setTimeout(r, 500));
+
+        log('✅ 所有测试完成!', 'success');
+      } catch (error) {
+        log('❌ 测试失败: ' + error.message, 'error');
+      }
+    }
+
+    // 页面加载时自动检查服务状态
+    window.onload = function() {
+      checkHealth();
+    };
+  </script>
+</body>
+</html>

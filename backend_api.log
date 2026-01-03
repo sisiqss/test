@@ -1,0 +1,61 @@
+2026-01-03 23:21:58,772 - __main__ - INFO - 🔧 正在构建 Agent...
+2026-01-03 23:21:59,006 - storage.memory.memory_saver - INFO - Attempting database connection (attempt 1/2)
+2026-01-03 23:21:59,041 - storage.memory.memory_saver - INFO - Database connection established on attempt 1
+2026-01-03 23:21:59,057 - storage.memory.memory_saver - INFO - Memory schema and tables created
+2026-01-03 23:21:59,057 - storage.memory.memory_saver - WARNING - Failed to create AsyncPostgresSaver: AsyncConnectionPool open with no running loop, will fallback to MemorySaver
+2026-01-03 23:21:59,058 - storage.memory.memory_saver - WARNING - Using MemorySaver as fallback checkpointer (data will not persist across restarts)
+2026-01-03 23:21:59,065 - __main__ - INFO - ✅ Agent 构建成功
+============================================================
+🚀 Agent API 服务启动
+============================================================
+📍 服务地址: http://0.0.0.0:5000
+📊 健康检查: http://localhost:5000/api/health
+🔧 Agent 聊天: http://localhost:5000/api/agent/chat
+🛠️ 工具列表: http://localhost:5000/api/tools
+============================================================
+ * Serving Flask app 'backend_api'
+ * Debug mode: on
+2026-01-03 23:21:59,080 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://169.254.110.1:5000
+2026-01-03 23:21:59,080 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-03 23:21:59,088 - werkzeug - INFO -  * Restarting with watchdog (inotify)
+2026-01-03 23:22:00,621 - __main__ - INFO - 🔧 正在构建 Agent...
+2026-01-03 23:22:00,826 - storage.memory.memory_saver - INFO - Attempting database connection (attempt 1/2)
+2026-01-03 23:22:00,868 - storage.memory.memory_saver - INFO - Database connection established on attempt 1
+2026-01-03 23:22:00,890 - storage.memory.memory_saver - INFO - Memory schema and tables created
+2026-01-03 23:22:00,891 - storage.memory.memory_saver - WARNING - Failed to create AsyncPostgresSaver: AsyncConnectionPool open with no running loop, will fallback to MemorySaver
+2026-01-03 23:22:00,891 - storage.memory.memory_saver - WARNING - Using MemorySaver as fallback checkpointer (data will not persist across restarts)
+2026-01-03 23:22:00,898 - __main__ - INFO - ✅ Agent 构建成功
+============================================================
+🚀 Agent API 服务启动
+============================================================
+📍 服务地址: http://0.0.0.0:5000
+📊 健康检查: http://localhost:5000/api/health
+🔧 Agent 聊天: http://localhost:5000/api/agent/chat
+🛠️ 工具列表: http://localhost:5000/api/tools
+============================================================
+2026-01-03 23:22:00,908 - werkzeug - WARNING -  * Debugger is active!
+2026-01-03 23:22:00,914 - werkzeug - INFO -  * Debugger PIN: 626-767-324
+2026-01-03 23:22:02,281 - __main__ - INFO - 🔧 直接调用工具: login | user_id: admin
+2026-01-03 23:22:02,434 - tools.auth_tool - INFO - ✅ 登录成功 | 用户名: admin | 用户ID: admin | 管理员: True
+2026-01-03 23:22:02,438 - __main__ - INFO - ✅ 工具调用成功: login | 耗时: ...
+2026-01-03 23:22:02,439 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 23:22:02] "POST /api/agent/chat HTTP/1.1" 200 -
+2026-01-03 23:22:04,771 - __main__ - INFO - 🔧 直接调用工具: query_user_by_id | user_id: admin
+2026-01-03 23:22:04,796 - tools.database_tool - ERROR - ❌ 查询用户失败: (psycopg2.errors.UndefinedColumn) column user_profile.company_name does not exist
+LINE 1: ...urrent_location AS user_profile_current_location, user_profi...
+                                                             ^
+
+[SQL: SELECT user_profile.id AS user_profile_id, user_profile.user_id AS user_profile_user_id, user_profile.name AS user_profile_name, user_profile.gender AS user_profile_gender, user_profile.relationship_type AS user_profile_relationship_type, user_profile.relationship_level AS user_profile_relationship_level, user_profile.birth_date AS user_profile_birth_date, user_profile.bazi AS user_profile_bazi, user_profile.mbti AS user_profile_mbti, user_profile.birth_place AS user_profile_birth_place, user_profile.current_location AS user_profile_current_location, user_profile.company_name AS user_profile_company_name, user_profile.company_type AS user_profile_company_type, user_profile.job_title AS user_profile_job_title, user_profile.job_level AS user_profile_job_level, user_profile.life_interpretation AS user_profile_life_interpretation, user_profile.life_interpretation_generated_at AS user_profile_life_interpretation_generated_at, user_profile.career_trend AS user_profile_career_trend, user_profile.career_trend_generated_at AS user_profile_career_trend_generated_at, user_profile.photo_url AS user_profile_photo_url, user_profile.notes AS user_profile_notes, user_profile.created_at AS user_profile_created_at, user_profile.updated_at AS user_profile_updated_at 
+FROM user_profile 
+WHERE user_profile.user_id = %(user_id_1)s AND user_profile.relationship_type = %(relationship_type_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'user_id_1': 'admin', 'relationship_type_1': 'SELF', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-01-03 23:22:04,796 - __main__ - INFO - ✅ 工具调用成功: query_user_by_id | 耗时: ...
+2026-01-03 23:22:04,797 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 23:22:04] "POST /api/agent/chat HTTP/1.1" 200 -
+2026-01-03 23:22:44,266 - __main__ - INFO - 🔧 直接调用工具: query_user_by_id | user_id: admin
+2026-01-03 23:22:44,290 - tools.database_tool - INFO - ✅ 查询用户成功 | user_id: admin
+2026-01-03 23:22:44,294 - __main__ - INFO - ✅ 工具调用成功: query_user_by_id | 耗时: ...
+2026-01-03 23:22:44,294 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 23:22:44] "POST /api/agent/chat HTTP/1.1" 200 -
