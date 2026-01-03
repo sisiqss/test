@@ -49,6 +49,14 @@ from tools.usage_limit_tool import (
     get_usage_statistics,
     check_all_limits
 )
+# 认证工具
+from tools.auth_tool import (
+    login,
+    register,
+    check_admin,
+    get_user_info,
+    reset_password
+)
 # from tools.daily_report_tool import (
 #     get_weather_info,
 #     get_fashion_trends,
@@ -190,6 +198,13 @@ def build_agent(ctx=None):
         record_usage,             # 记录消耗
         get_usage_statistics,     # 获取消耗统计（仅管理员）
         check_all_limits,         # 综合检查所有限制
+
+        # 认证工具
+        login,                     # 用户登录
+        register,                  # 用户注册
+        check_admin,               # 检查管理员权限
+        get_user_info,             # 获取用户信息
+        reset_password,            # 重置密码
 
         # 每日报告工具（已禁用高消耗功能）
         # get_weather_info,         # 获取天气信息（已禁用，使用get_weather替代）
