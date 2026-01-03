@@ -14,7 +14,8 @@ from storage.database.shared.model import (
     RelationshipType,
     RelationshipLevel,
     UserConversationMemory,
-    ConversationType
+    ConversationType,
+    DailyReport
 )
 
 logger = logging.getLogger(__name__)
@@ -522,3 +523,464 @@ def add_user_bazi(user_id: str, bazi: str) -> str:
     except Exception as e:
         logger.error(f"❌ 添加八字信息失败: {e}")
         return f"❌ 添加失败：{str(e)}"
+
+
+@tool
+def save_life_interpretation(user_id: str, interpretation: dict) -> str:
+    """
+    保存用户的人生解读报告
+
+    参数：
+    - user_id: 用户ID
+    - interpretation: 人生解读报告（字典格式），包含：
+      - bazi_info: 八字排盘信息
+      - five_elements: 五行分析
+      - personality: 性格特点
+      - fate_features: 命盘特点
+
+    返回：保存结果
+    """
+    try:
+        with get_session() as session:
+            # 查找本人的条目
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return "❌ 未找到本人的信息，请先添加本人信息到花名册"
+
+            entry.life_interpretation = interpretation
+            entry.life_interpretation_generated_at = datetime.utcnow()
+            entry.updated_at = datetime.utcnow()
+            session.commit()
+
+            logger.info(f"✅ 成功保存用户 {entry.name} 的人生解读报告")
+
+            return f"✅ 成功保存 {entry.name} 的人生解读报告！"
+
+    except Exception as e:
+        logger.error(f"❌ 保存人生解读报告失败: {e}")
+        return f"❌ 保存失败：{str(e)}"
+
+
+@tool
+def get_life_interpretation(user_id: str) -> str:
+    """
+    获取用户的人生解读报告
+
+    参数：
+    - user_id: 用户ID
+
+    返回：人生解读报告内容
+    """
+    try:
+        with get_session() as session:
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return "❌ 未找到本人的信息"
+
+            if not entry.life_interpretation:
+                return "📋 尚未生成人生解读报告，请先生成报告"
+
+            interpretation = entry.life_interpretation
+
+            # 格式化输出
+            result = f"📚 **{entry.name} 的人生解读**\n\n"
+            result += f"生成时间: {entry.life_interpretation_generated_at.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+            result += "---\n\n"
+
+            if interpretation.get("bazi_info"):
+                result += "### 🎯 八字排盘\n"
+                for key, value in interpretation["bazi_info"].items():
+                    result += f"- **{key}**: {value}\n"
+                result += "\n"
+
+            if interpretation.get("five_elements"):
+                result += "### 🌟 五行分析\n"
+                for key, value in interpretation["five_elements"].items():
+                    result += f"- **{key}**: {value}\n"
+                result += "\n"
+
+            if interpretation.get("personality"):
+                result += "### 💡 性格特点\n"
+                if isinstance(interpretation["personality"], list):
+                    for trait in interpretation["personality"]:
+                        result += f"- {trait}\n"
+                else:
+                    result += f"{interpretation['personality']}\n"
+                result += "\n"
+
+            if interpretation.get("fate_features"):
+                result += "### 🎲 命盘特点\n"
+                if isinstance(interpretation["fate_features"], list):
+                    for feature in interpretation["fate_features"]:
+                        result += f"- {feature}\n"
+                else:
+                    result += f"{interpretation['fate_features']}\n"
+                result += "\n"
+
+            return result
+
+    except Exception as e:
+        logger.error(f"❌ 获取人生解读报告失败: {e}")
+        return f"❌ 获取失败：{str(e)}"
+
+
+@tool
+def save_career_trend(user_id: str, career_trend: dict) -> str:
+    """
+    保存用户的职场大势报告
+
+    参数：
+    - user_id: 用户ID
+    - career_trend: 职场大势报告（字典格式），包含：
+      - career_direction: 事业方向
+      - wealth_limit: 财富上限
+      - key_turning_points: 关键职业转折点
+      - next_turning_point: 下一个转运点
+      - career_trend_chart: 职场运势走势图数据
+
+    返回：保存结果
+    """
+    try:
+        with get_session() as session:
+            # 查找本人的条目
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return "❌ 未找到本人的信息，请先添加本人信息到花名册"
+
+            # 检查是否已录入职场信息
+            if not entry.job_title or not entry.job_level:
+                return "⚠️ 请先录入职场信息（职位类型、职级）后再生成职场大势报告"
+
+            entry.career_trend = career_trend
+            entry.career_trend_generated_at = datetime.utcnow()
+            entry.updated_at = datetime.utcnow()
+            session.commit()
+
+            logger.info(f"✅ 成功保存用户 {entry.name} 的职场大势报告")
+
+            return f"✅ 成功保存 {entry.name} 的职场大势报告！"
+
+    except Exception as e:
+        logger.error(f"❌ 保存职场大势报告失败: {e}")
+        return f"❌ 保存失败：{str(e)}"
+
+
+@tool
+def get_career_trend(user_id: str) -> str:
+    """
+    获取用户的职场大势报告
+
+    参数：
+    - user_id: 用户ID
+
+    返回：职场大势报告内容
+    """
+    try:
+        with get_session() as session:
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return "❌ 未找到本人的信息"
+
+            if not entry.career_trend:
+                return "📋 尚未生成职场大势报告，请先生成报告"
+
+            trend = entry.career_trend
+
+            # 格式化输出
+            result = f"💼 **{entry.name} 的职场大势**\n\n"
+            result += f"生成时间: {entry.career_trend_generated_at.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+            result += "---\n\n"
+
+            if trend.get("career_direction"):
+                result += "### 🎯 事业方向\n"
+                result += f"{trend['career_direction']}\n\n"
+
+            if trend.get("wealth_limit"):
+                result += "### 💰 财富上限\n"
+                result += f"{trend['wealth_limit']}\n\n"
+
+            if trend.get("key_turning_points"):
+                result += "### 🔄 关键职业转折点\n"
+                if isinstance(trend["key_turning_points"], list):
+                    for point in trend["key_turning_points"]:
+                        result += f"- {point}\n"
+                else:
+                    result += f"{trend['key_turning_points']}\n"
+                result += "\n"
+
+            if trend.get("next_turning_point"):
+                result += "### ⭐ 下一个转运点\n"
+                result += f"{trend['next_turning_point']}\n\n"
+
+            if trend.get("career_trend_chart"):
+                result += "### 📈 职场运势走势图\n"
+                result += "（走势图数据已保存，可生成可视化图表）\n\n"
+
+            return result
+
+    except Exception as e:
+        logger.error(f"❌ 获取职场大势报告失败: {e}")
+        return f"❌ 获取失败：{str(e)}"
+
+
+@tool
+def save_daily_report(user_id: str, report_date: str, report_data: dict) -> str:
+    """
+    保存每日报告（运势和穿搭）
+
+    参数：
+    - user_id: 用户ID
+    - report_date: 报告日期（格式：YYYY-MM-DD）
+    - report_data: 每日报告数据（字典格式），包含：
+      - fortune_score: 运势指数（1-5）
+      - fortune_yi: 今日宜事项（列表）
+      - fortune_ji: 今日忌事项（列表）
+      - fortune_mood: 今日心情
+      - fortune_status: 今日状态
+      - fortune_work_situation: 职场中可能发生的状况
+      - fortune_advice: 给用户的建议
+      - lucky_number: 幸运数字
+      - lucky_color: 幸运色
+      - weather: 今日天气
+      - dressing_style: 穿搭风格建议
+      - dressing_color: 配色建议
+      - dressing_details: 具体穿搭推荐
+      - dressing_image_url: 穿搭图片URL（可选）
+      - fashion_trends: 流行趋势信息（可选）
+
+    返回：保存结果
+    """
+    try:
+        with get_session() as session:
+            # 检查是否已存在当日报告
+            existing_report = session.query(DailyReport).filter(
+                DailyReport.user_id == user_id,
+                DailyReport.report_date == report_date
+            ).first()
+
+            if existing_report:
+                # 更新现有报告
+                for key, value in report_data.items():
+                    if hasattr(existing_report, key):
+                        setattr(existing_report, key, value)
+                session.commit()
+                logger.info(f"✅ 成功更新用户 {report_date} 的每日报告")
+                return f"✅ 成功更新 {report_date} 的每日报告！"
+
+            # 创建新报告
+            report = DailyReport(
+                user_id=user_id,
+                report_date=report_date,
+                fortune_score=report_data.get("fortune_score"),
+                fortune_yi=report_data.get("fortune_yi"),
+                fortune_ji=report_data.get("fortune_ji"),
+                fortune_mood=report_data.get("fortune_mood"),
+                fortune_status=report_data.get("fortune_status"),
+                fortune_work_situation=report_data.get("fortune_work_situation"),
+                fortune_advice=report_data.get("fortune_advice"),
+                lucky_number=report_data.get("lucky_number"),
+                lucky_color=report_data.get("lucky_color"),
+                weather=report_data.get("weather"),
+                dressing_style=report_data.get("dressing_style"),
+                dressing_color=report_data.get("dressing_color"),
+                dressing_details=report_data.get("dressing_details"),
+                dressing_image_url=report_data.get("dressing_image_url"),
+                fashion_trends=report_data.get("fashion_trends"),
+            )
+            session.add(report)
+            session.commit()
+
+            logger.info(f"✅ 成功保存用户 {report_date} 的每日报告")
+
+            return f"✅ 成功保存 {report_date} 的每日报告！"
+
+    except Exception as e:
+        logger.error(f"❌ 保存每日报告失败: {e}")
+        return f"❌ 保存失败：{str(e)}"
+
+
+@tool
+def get_daily_report(user_id: str, report_date: str = "") -> str:
+    """
+    获取每日报告（运势和穿搭）
+
+    参数：
+    - user_id: 用户ID
+    - report_date: 报告日期（格式：YYYY-MM-DD），不填则使用今天
+
+    返回：每日报告内容
+    """
+    try:
+        from datetime import date
+
+        with get_session() as session:
+            # 如果没有指定日期，使用今天
+            if not report_date:
+                report_date = date.today().strftime("%Y-%m-%d")
+
+            report = session.query(DailyReport).filter(
+                DailyReport.user_id == user_id,
+                DailyReport.report_date == report_date
+            ).first()
+
+            if not report:
+                return f"📋 尚未生成 {report_date} 的每日报告"
+
+            # 格式化输出
+            result = f"📅 **{report_date} 每日报告**\n\n"
+
+            # 每日运势部分
+            result += "✨ **今日运势**\n\n"
+            if report.fortune_score:
+                stars = "⭐" * report.fortune_score
+                result += f"**运势指数**: {stars}\n\n"
+
+            if report.fortune_yi:
+                result += f"**今日宜**:\n"
+                for item in report.fortune_yi:
+                    result += f"- {item}\n"
+                result += "\n"
+
+            if report.fortune_ji:
+                result += f"**今日忌**:\n"
+                for item in report.fortune_ji:
+                    result += f"- {item}\n"
+                result += "\n"
+
+            if report.fortune_mood:
+                result += f"**今日心情**: {report.fortune_mood}\n\n"
+
+            if report.fortune_status:
+                result += f"**今日状态**: {report.fortune_status}\n\n"
+
+            if report.fortune_work_situation:
+                result += f"**职场可能发生**: {report.fortune_work_situation}\n\n"
+
+            if report.fortune_advice:
+                result += f"**建议**: {report.fortune_advice}\n\n"
+
+            if report.lucky_number:
+                result += f"**幸运数字**: {report.lucky_number}\n\n"
+
+            if report.lucky_color:
+                result += f"**幸运色**: {report.lucky_color}\n\n"
+
+            result += "---\n\n"
+
+            # 穿搭建议部分
+            result += "👔 **穿搭建议**\n\n"
+
+            if report.weather:
+                result += f"**今日天气**: {report.weather}\n\n"
+
+            if report.dressing_style:
+                result += f"**穿搭风格**: {report.dressing_style}\n\n"
+
+            if report.dressing_color:
+                result += f"**配色建议**: {report.dressing_color}\n\n"
+
+            if report.dressing_details:
+                result += f"**具体穿搭**: {report.dressing_details}\n\n"
+
+            if report.dressing_image_url:
+                result += f"**穿搭图片**: [查看穿搭建议]({report.dressing_image_url})\n\n"
+
+            if report.fashion_trends:
+                result += f"**当前流行趋势**: 已收录最新流行元素\n\n"
+
+            return result
+
+    except Exception as e:
+        logger.error(f"❌ 获取每日报告失败: {e}")
+        return f"❌ 获取失败：{str(e)}"
+
+
+@tool
+def save_user_photo(user_id: str, photo_url: str) -> str:
+    """
+    保存用户照片（用于穿搭建议）
+
+    参数：
+    - user_id: 用户ID
+    - photo_url: 照片URL
+
+    返回：保存结果
+    """
+    try:
+        with get_session() as session:
+            # 查找本人的条目
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return "❌ 未找到本人的信息，请先添加本人信息到花名册"
+
+            entry.photo_url = photo_url
+            entry.updated_at = datetime.utcnow()
+            session.commit()
+
+            logger.info(f"✅ 成功保存用户 {entry.name} 的照片")
+
+            return f"✅ 成功保存照片！后续将基于您的照片生成个性化穿搭建议。"
+
+    except Exception as e:
+        logger.error(f"❌ 保存用户照片失败: {e}")
+        return f"❌ 保存失败：{str(e)}"
+
+
+@tool
+def check_user_info_exists(user_id: str) -> str:
+    """
+    检查用户是否已录入本人信息
+
+    参数：
+    - user_id: 用户ID
+
+    返回：检查结果（包含是否已录入、是否已完成职场信息录入等信息）
+    """
+    try:
+        with get_session() as session:
+            entry = session.query(UserProfile).filter(
+                UserProfile.user_id == user_id,
+                UserProfile.relationship_type == RelationshipType.SELF
+            ).first()
+
+            if not entry:
+                return json.dumps({
+                    "has_basic_info": False,
+                    "has_work_info": False,
+                    "message": "用户尚未录入本人信息"
+                }, ensure_ascii=False)
+
+            has_work_info = bool(entry.job_title and entry.job_level)
+
+            result = {
+                "has_basic_info": True,
+                "has_work_info": has_work_info,
+                "user_name": entry.name,
+                "message": "用户已录入本人信息" + ("，且已完成职场信息录入" if has_work_info else "，但尚未录入职场信息")
+            }
+
+            return json.dumps(result, ensure_ascii=False)
+
+    except Exception as e:
+        logger.error(f"❌ 检查用户信息失败: {e}")
+        return f"❌ 检查失败：{str(e)}"

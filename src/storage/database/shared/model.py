@@ -67,6 +67,17 @@ class UserProfile(Base):
     job_title: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="职位类型（如：产品经理、工程师、运营等）")
     job_level: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="职级（如：P6、P7、高级、经理等）")
 
+    # 人生解读报告（生成后保存，后续直接读取）
+    life_interpretation: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True, comment="人生解读报告（JSON格式，包含八字排盘、五行分析、性格特点、命盘特点等）")
+    life_interpretation_generated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="人生解读报告生成时间")
+
+    # 职场大势报告（生成后保存，后续直接读取）
+    career_trend: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True, comment="职场大势报告（JSON格式，包含事业方向、财富上限、关键转折点、下一个转运点、职场运势走势图等）")
+    career_trend_generated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True, comment="职场大势报告生成时间")
+
+    # 用户照片（用于穿搭建议）
+    photo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, comment="用户照片URL（用于穿搭建议生成）")
+
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="备注信息")
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,
@@ -127,4 +138,46 @@ class UserConversationMemory(Base):
         Index("idx_user_id_type", "user_id", "conversation_type"),
         Index("idx_user_id_contact", "user_id", "contact_user_id"),
         Index("idx_created_at", "created_at"),
+    )
+
+
+# 每日报告表（每日运势和穿搭建议）
+class DailyReport(Base):
+    """用户每日报告表，存储每日运势和穿搭建议"""
+    __tablename__ = "daily_report"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(255), index=True, comment="所属用户ID（使用Agent的用户）")
+    report_date: Mapped[str] = mapped_column(String(20), index=True, comment="报告日期（格式：YYYY-MM-DD）")
+
+    # 每日运势
+    fortune_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="运势指数（1-5星）")
+    fortune_yi: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, comment="今日宜事项")
+    fortune_ji: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, comment="今日忌事项")
+    fortune_mood: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="今日心情")
+    fortune_status: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="今日状态")
+    fortune_work_situation: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="职场中可能发生的状况")
+    fortune_advice: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="给用户的建议")
+    lucky_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="幸运数字")
+    lucky_color: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="幸运色")
+
+    # 穿搭建议
+    weather: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="今日天气")
+    dressing_style: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="穿搭风格建议")
+    dressing_color: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="配色建议（结合幸运色）")
+    dressing_details: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="具体穿搭推荐")
+    dressing_image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, comment="穿搭图片URL（基于用户照片生成）")
+
+    # 流行趋势（从小红书等平台获取）
+    fashion_trends: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True, comment="当前流行趋势信息")
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        nullable=False,
+        comment="创建时间"
+    )
+
+    __table_args__ = (
+        Index("idx_user_id_date", "user_id", "report_date"),
     )

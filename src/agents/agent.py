@@ -24,7 +24,24 @@ from tools.roster_tool import (
     update_roster_entry,
     delete_roster_entry,
     search_roster_entries,
-    add_user_bazi
+    add_user_bazi,
+    save_life_interpretation,
+    get_life_interpretation,
+    save_career_trend,
+    get_career_trend,
+    save_daily_report,
+    get_daily_report,
+    save_user_photo,
+    check_user_info_exists
+)
+from tools.daily_report_tool import (
+    get_weather_info,
+    get_fashion_trends,
+    generate_daily_fortune_report,
+    generate_dressing_suggestion,
+    upload_user_photo,
+    generate_outfit_image,
+    generate_complete_daily_report
 )
 
 LLM_CONFIG = "config/agent_llm_config.json"
@@ -75,7 +92,7 @@ def build_agent(ctx=None):
 
         # 天气和穿搭工具
         get_weather,        # 天气查询
-        dressing_advice,     # 穿搭建议
+        dressing_advice,    # 穿搭建议
 
         # MBTI工具
         mbti_analysis,      # MBTI分析
@@ -102,6 +119,23 @@ def build_agent(ctx=None):
         delete_roster_entry,      # 删除花名册条目
         search_roster_entries,    # 搜索花名册条目
         add_user_bazi,           # 为用户添加八字信息
+        save_life_interpretation, # 保存人生解读报告
+        get_life_interpretation,  # 获取人生解读报告
+        save_career_trend,       # 保存职场大势报告
+        get_career_trend,        # 获取职场大势报告
+        save_daily_report,       # 保存每日报告
+        get_daily_report,        # 获取每日报告
+        save_user_photo,         # 保存用户照片
+        check_user_info_exists,  # 检查用户是否已录入信息
+
+        # 每日报告工具
+        get_weather_info,         # 获取天气信息
+        get_fashion_trends,      # 获取流行趋势
+        generate_daily_fortune_report,  # 生成每日运势报告
+        generate_dressing_suggestion,   # 生成穿搭建议
+        upload_user_photo,       # 上传用户照片
+        generate_outfit_image,   # 生成穿搭图片
+        generate_complete_daily_report,  # 生成完整每日报告
     ]
     
     return create_agent(
