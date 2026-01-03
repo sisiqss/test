@@ -566,16 +566,19 @@ def save_life_interpretation(user_id: str, interpretation: dict) -> str:
 
 
 @tool
-def get_life_interpretation(user_id: str) -> str:
+def get_life_interpretation(user_id: str, check_expired: bool = True) -> str:
     """
     获取用户的人生解读报告
 
     参数：
     - user_id: 用户ID
+    - check_expired: 是否检查过期（默认为True，缓存7天）
 
-    返回：人生解读报告内容
+    返回：人生解读报告内容，如果过期则返回提示
     """
     try:
+        from datetime import timedelta
+
         with get_session() as session:
             entry = session.query(UserProfile).filter(
                 UserProfile.user_id == user_id,
@@ -587,6 +590,12 @@ def get_life_interpretation(user_id: str) -> str:
 
             if not entry.life_interpretation:
                 return "📋 尚未生成人生解读报告，请先生成报告"
+
+            # 检查是否过期（7天缓存）
+            if check_expired and entry.life_interpretation_generated_at:
+                expired_time = entry.life_interpretation_generated_at + timedelta(days=7)
+                if datetime.utcnow() > expired_time:
+                    return "📋 人生解读报告已过期（缓存7天），请重新生成"
 
             interpretation = entry.life_interpretation
 
@@ -678,16 +687,19 @@ def save_career_trend(user_id: str, career_trend: dict) -> str:
 
 
 @tool
-def get_career_trend(user_id: str) -> str:
+def get_career_trend(user_id: str, check_expired: bool = True) -> str:
     """
     获取用户的职场大势报告
 
     参数：
     - user_id: 用户ID
+    - check_expired: 是否检查过期（默认为True，缓存3个月）
 
-    返回：职场大势报告内容
+    返回：职场大势报告内容，如果过期则返回提示
     """
     try:
+        from datetime import timedelta
+
         with get_session() as session:
             entry = session.query(UserProfile).filter(
                 UserProfile.user_id == user_id,
@@ -699,6 +711,12 @@ def get_career_trend(user_id: str) -> str:
 
             if not entry.career_trend:
                 return "📋 尚未生成职场大势报告，请先生成报告"
+
+            # 检查是否过期（3个月缓存）
+            if check_expired and entry.career_trend_generated_at:
+                expired_time = entry.career_trend_generated_at + timedelta(days=90)
+                if datetime.utcnow() > expired_time:
+                    return "📋 职场大势报告已过期（缓存3个月），请重新生成"
 
             trend = entry.career_trend
 
@@ -816,18 +834,19 @@ def save_daily_report(user_id: str, report_date: str, report_data: dict) -> str:
 
 
 @tool
-def get_daily_report(user_id: str, report_date: str = "") -> str:
+def get_daily_report(user_id: str, report_date: str = "", check_expired: bool = True) -> str:
     """
     获取每日报告（运势和穿搭）
 
     参数：
     - user_id: 用户ID
     - report_date: 报告日期（格式：YYYY-MM-DD），不填则使用今天
+    - check_expired: 是否检查过期（默认为True，缓存1天）
 
-    返回：每日报告内容
+    返回：每日报告内容，如果过期则返回提示
     """
     try:
-        from datetime import date
+        from datetime import date, timedelta
 
         with get_session() as session:
             # 如果没有指定日期，使用今天
@@ -841,6 +860,18 @@ def get_daily_report(user_id: str, report_date: str = "") -> str:
 
             if not report:
                 return f"📋 尚未生成 {report_date} 的每日报告"
+
+            # 检查是否过期（1天缓存，仅对非当天的报告检查）
+            if check_expired and report.created_at:
+                # 如果报告日期不是今天，且创建时间超过1天，则认为过期
+                today = date.today()
+                report_date_obj = date.fromisoformat(report_date)
+
+                # 如果不是今天的报告，且创建时间超过1天
+                if report_date_obj != today:
+                    expired_time = report.created_at + timedelta(days=1)
+                    if datetime.utcnow() > expired_time:
+                        return f"📋 {report_date} 的每日报告已过期（缓存1天），请重新生成"
 
             # 格式化输出
             result = f"📅 **{report_date} 每日报告**\n\n"

@@ -118,48 +118,77 @@ def format_life_report_section(section_type: str, content: str) -> str:
 
 
 @tool
-def check_report_cache(user_id: str) -> str:
+def check_report_cache(user_id: str, report_date: str = "") -> str:
     """
-    检查用户报告缓存，返回哪些板块已有数据。
-    
+    检查用户报告缓存，返回哪些板块已有数据及是否过期。
+
     Args:
         user_id: 用户ID
-        
+        report_date: 查询日期（格式：YYYY-MM-DD），不填则使用今天（仅用于每日报告）
+
     Returns:
-        JSON格式的缓存状态
+        JSON格式的缓存状态，包含过期信息
     """
     try:
         from tools.roster_tool import get_life_interpretation, get_career_trend, get_daily_report
-        
+
         cache_status = {}
-        
-        # 检查各板块
+
+        # 检查人生解读（7天缓存）
         try:
-            if get_life_interpretation(user_id):
-                cache_status["life"] = True
+            life_result = get_life_interpretation(user_id, check_expired=True)
+            if life_result and not life_result.startswith("❌") and "已过期" not in life_result:
+                cache_status["life"] = {"cached": True, "expired": False}
+            elif "已过期" in life_result:
+                cache_status["life"] = {"cached": True, "expired": True}
+            else:
+                cache_status["life"] = {"cached": False, "expired": False}
         except:
-            cache_status["life"] = False
-        
+            cache_status["life"] = {"cached": False, "expired": False}
+
+        # 检查职场大势（3个月缓存）
         try:
-            if get_career_trend(user_id):
-                cache_status["career"] = True
+            career_result = get_career_trend(user_id, check_expired=True)
+            if career_result and not career_result.startswith("❌") and "已过期" not in career_result:
+                cache_status["career"] = {"cached": True, "expired": False}
+            elif "已过期" in career_result:
+                cache_status["career"] = {"cached": True, "expired": True}
+            else:
+                cache_status["career"] = {"cached": False, "expired": False}
         except:
-            cache_status["career"] = False
-        
+            cache_status["career"] = {"cached": False, "expired": False}
+
+        # 检查每日运势（1天缓存）
         try:
-            if get_daily_report(user_id):
-                cache_status["fortune"] = True
+            daily_result = get_daily_report(user_id, report_date=report_date, check_expired=True)
+            if daily_result and not daily_result.startswith("❌") and "已过期" not in daily_result:
+                cache_status["fortune"] = {"cached": True, "expired": False}
+            elif "已过期" in daily_result:
+                cache_status["fortune"] = {"cached": True, "expired": True}
+            else:
+                cache_status["fortune"] = {"cached": False, "expired": False}
         except:
-            cache_status["fortune"] = False
-        
+            cache_status["fortune"] = {"cached": False, "expired": False}
+
+        # 判断是否有完整的有效缓存
+        has_complete_report = all(
+            section.get("cached", False) and not section.get("expired", False)
+            for section in cache_status.values()
+        )
+
         return json.dumps({
             "status": "success",
             "data": {
                 "cached_sections": cache_status,
-                "has_complete_report": all(cache_status.values())
+                "has_complete_report": has_complete_report,
+                "cache_policy": {
+                    "life": "7天",
+                    "career": "3个月",
+                    "fortune": "1天"
+                }
             }
         }, ensure_ascii=False)
-        
+
     except Exception as e:
         return json.dumps({
             "status": "failed",
