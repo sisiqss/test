@@ -7,6 +7,6 @@ services:
     startCommand: python backend_api_minimal.py
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9
+        value: 3.10
       - key: PORT
         value: 10000
