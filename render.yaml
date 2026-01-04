@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: workplace-emotion-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend_api_render.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9
+      - key: PORT
+        value: 10000
